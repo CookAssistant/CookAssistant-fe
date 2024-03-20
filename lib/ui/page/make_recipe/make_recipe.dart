@@ -7,7 +7,10 @@ class RecipeCreationPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('레시피 제작하기'),
+        title: Text(
+            '레시피 제작하기',
+            style: AppTextStyles.headingH4.copyWith(color: AppColors.neutralDarkDarkest),
+        ),
       ),
       body: SingleChildScrollView(
 

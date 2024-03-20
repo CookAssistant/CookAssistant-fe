@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color highlightDarkest = Color.fromRGBO(26, 147, 111, 1);
-  static const Color highlightDark = Color.fromRGBO(26, 147, 89, 0.77);
-  static const Color highlightMedium = Color.fromRGBO(136, 212, 152, 1);
-  static const Color highlightLight = Color.fromRGBO(215, 233, 209, 0.67);
-  static const Color highlightLightest = Color.fromRGBO(231, 241, 231, 0.19);
+  static const Color highlightDarkest = Color(0xff1A936F);
+  static const Color highlightDark = Color(0xff1A9359);
+  static const Color highlightMedium = Color(0xff88D498);
+  static const Color highlightLight = Color(0xffEAF3E7);
+  static const Color highlightLightest = Color(0xffF9F9F9);
 
 
   static const Color neutralLightDarkest = Color.fromRGBO(197, 198, 204, 1);
