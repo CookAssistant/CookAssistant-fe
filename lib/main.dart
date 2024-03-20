@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:cook_assistant/screens/community.dart';
-import 'package:cook_assistant/screens/home.dart';
-import 'package:cook_assistant/screens/make_recipe.dart';
-import 'package:cook_assistant/screens/my_page.dart';
-import 'package:cook_assistant/screens/register.dart';
+import 'package:cook_assistant/ui/page/community/community.dart';
+import 'package:cook_assistant/ui/page/home/home.dart';
+import 'package:cook_assistant/ui/page/make_recipe/make_recipe.dart';
+import 'package:cook_assistant/ui/page/my_page/my_page.dart';
 
 void main() => runApp(MyApp());
 
@@ -31,8 +30,8 @@ class _MyHomePageState extends State<MyHomePage> {
   final List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
     CommunityPage(),
-    RecipeCreationPage(), // 구현했다면 주석을 해제하세요.
-    MyPage(), // 구현했다면 주석을 해제하세요.
+    RecipeCreationPage(),
+    MyPage(),
   ];
 
 
@@ -46,7 +45,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('CookAssistant'),
+        title: Text('CookssssAssistant'),
       ),
       body: _widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
