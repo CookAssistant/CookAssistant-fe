@@ -3,6 +3,8 @@ import 'package:cook_assistant/ui/page/community/community.dart';
 import 'package:cook_assistant/ui/page/home/home.dart';
 import 'package:cook_assistant/ui/page/make_recipe/make_recipe.dart';
 import 'package:cook_assistant/ui/page/my_page/my_page.dart';
+import 'package:cook_assistant/ui/theme/color.dart';
+import 'package:cook_assistant/ui/theme/text_styles.dart';
 
 void main() => runApp(MyApp());
 
@@ -13,6 +15,8 @@ class MyApp extends StatelessWidget {
       title: 'CookAssistant',
       theme: ThemeData(
         primarySwatch: Colors.green,
+        primaryColor: AppColors.highlightDarkest,
+        splashColor: Colors.transparent,
       ),
       home: MyHomePage(),
     );
@@ -44,31 +48,34 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('CookssssAssistant'),
-      ),
       body: _widgetOptions.elementAt(_selectedIndex),
+      
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'Home',
+            label: '홈',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.people),
-            label: 'Community',
+            label: '커뮤니티',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.add),
-            label: 'Make Recipe',
+            label: '레시피 제작',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_circle),
-            label: 'My Page',
+            label: '마이페이지',
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.green,
+        selectedItemColor: AppColors.highlightDarkest,
+        unselectedItemColor: AppColors.neutralLightDark,
+        selectedLabelStyle: TextStyle(color: AppColors.neutralDarkDarkest),
+        unselectedLabelStyle: TextStyle(color: AppColors.neutralDarkLight),
+        showUnselectedLabels: true,
+        type: BottomNavigationBarType.fixed,
         onTap: _onItemTapped,
       ),
     );

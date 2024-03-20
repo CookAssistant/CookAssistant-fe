@@ -5,10 +5,10 @@ class MyPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Mypage'),
+        title: Text('마이페이지'),
       ),
       body: Center(
-        child: Text('MYPAGEEEEEE'),
+        child: Text('MYPAGE'),
       ),
     );
   }

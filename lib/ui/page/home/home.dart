@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:cook_assistant/ui/theme/color.dart';
+import 'package:cook_assistant/ui/theme/text_styles.dart';
 
 class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
+      appBar: AppBar(
+        title: Text('CookAssistant'),
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: <Widget>[
+
             Container(
-              height: 200,
-              color: Colors.grey[300],
+              height: 214,
+              color: AppColors.highlightLightest,
               child: Center(
                 child: Text('광고 배너'),
               ),
@@ -32,10 +37,16 @@ class HomeScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Text(title, style: Theme.of(context).textTheme.headline6),
+          Text(
+              title,
+              style: AppTextStyles.headingH4.copyWith(color: AppColors.neutralDarkDarkest),
+          ),
           GestureDetector(
-            onTap: onTap,
-            child: Text('더보기', style: TextStyle(color: Color(0xFF1A936F))),
+              onTap: onTap,
+              child: Text(
+                '더보기',
+                style: AppTextStyles.actionM.copyWith(color: AppColors.highlightDarkest),
+              ),
           ),
         ],
       ),
@@ -44,20 +55,30 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildHorizontalList() {
     return Container(
-      height: 120,
+      height: 189,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: 5,
         itemBuilder: (context, index) {
           return Container(
-            width: 120,
+            width: 189,
             child: Card(
+              color: AppColors.highlightLightest,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Icon(Icons.kitchen, size: 50),
-                  Text('소비기한: 00일'),
-                  Text('식재료 이름'),
+                  Icon(Icons.photo,
+                      size: 32,
+                      color: AppColors.highlightLight,
+                  ),
+                  Text(
+                    '소비기한: 00일',
+                    style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkDarkest),
+                  ),
+                  Text(
+                    '식재료 이름',
+                    style: AppTextStyles.headingH4.copyWith(color: AppColors.neutralDarkDarkest),
+                  ),
                 ],
               ),
             ),
