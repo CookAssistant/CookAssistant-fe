@@ -1,16 +1,9 @@
 # cook_assistant
 
-cook_assistant application
+레시피를 사용자에 맞게 제작해주는 앱
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+<br>
+- 레시피 제작 (음성, 텍스트 입력)
+- 식재료 관리 (음성, 이미지, 텍스트로 입력)
+- 커뮤니티 (레시피 공유, 좋아요 기능)
+- 회원가입, 로그인
