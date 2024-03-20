@@ -1,8 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:cook_assistant/ui/theme/color.dart';
 import 'package:cook_assistant/ui/theme/text_styles.dart';
+import 'package:dots_indicator/dots_indicator.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final _pageController = PageController(viewportFraction: 1);
+  double _currentPage = 0;
+  final _bannerImages = ['assets/banner1.webp', 'assets/banner2.webp', 'assets/banner3.webp'];
+
+  @override
+  @override
+  void initState() {
+    super.initState();
+    _pageController.addListener(() {
+      if (_pageController.page != null) {
+        setState(() {
+          _currentPage = _pageController.page!;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -16,18 +45,39 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           children: <Widget>[
             Container(
-              height: 240,
-              color: AppColors.highlightLightest,
-              child: Center(
-                child: Text('광고 배너'),
+              height: 300,
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: _bannerImages.length,
+                itemBuilder: (context, index) => Image.asset(
+                  _bannerImages[index],
+                  fit: BoxFit.cover,
+                ),
+                physics: ClampingScrollPhysics(),
               ),
             ),
+
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: DotsIndicator(
+                dotsCount: _bannerImages.length,
+                position: _currentPage,
+                decorator: DotsDecorator(
+                  activeColor: AppColors.highlightDarkest,
+                ),
+              ),
+            ),
+
             SizedBox(height: 32),
+
             _buildSectionTitle(context, '나의 냉장고', () {}),
             _buildHorizontalList(),
             SizedBox(height: 32),
+
             _buildSectionTitle(context, '유저가 만든 레시피', () {}),
             _buildHorizontalList(),
+            SizedBox(height: 32),
+
           ],
         ),
       ),
@@ -92,9 +142,8 @@ class HomeScreen extends StatelessWidget {
             ),
           );
         },
-        separatorBuilder: (context, index) {
-          return SizedBox(width: 8);
-        },
+        separatorBuilder: (context, index) => SizedBox(width: 8),
+        physics: ClampingScrollPhysics(),
       ),
     );
   }
