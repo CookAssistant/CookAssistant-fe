@@ -36,6 +36,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
 
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -58,11 +59,11 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/banner/banner1.webp
-    - assets/banner/banner2.webp
-    - assets/banner/banner3.webp
-    - assets/banner/make_recipe.webp
-    - assets/icon/avatar.svg
+    - assets/banners/banner1.webp
+    - assets/banners/banner2.webp
+    - assets/banners/banner3.webp
+    - assets/banners/make_recipe.webp
+    - assets/icons/avatar.svg
 
   # To add assets to your application, add an assets section, like this:
   # assets:
