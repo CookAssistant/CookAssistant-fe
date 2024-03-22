@@ -24,7 +24,7 @@ class RecipeCreationPage extends StatelessWidget {
                 child: SizedBox(
                   width: double.infinity,
                   child: Image.asset(
-                    'assets/banner/make_recipe.webp',
+                    'assets/banners/make_recipe.webp',
                     fit: BoxFit.cover,
                   ),
                 ),
