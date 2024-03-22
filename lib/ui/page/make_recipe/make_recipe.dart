@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cook_assistant/ui/theme/color.dart';
 import 'package:cook_assistant/ui/theme/text_styles.dart';
+import 'package:cook_assistant/ui/page/make_recipe/make_recipe_voice.dart';
+import 'package:cook_assistant/ui/page/make_recipe/make_recipe_text.dart';
 import 'package:cook_assistant/widgets/button/primary_button.dart';
 import 'package:cook_assistant/widgets/button/secondary_button.dart';
 
@@ -55,13 +57,19 @@ class RecipeCreationPage extends StatelessWidget {
                   PrimaryButton(
                     text: '음성으로 시작하기',
                     onPressed: () {
-                      // Implement your logic for starting with voice
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => MakeRecipeVoicePage()),
+                      );
                     },
                   ),
                   SecondaryButton(
                     text: '텍스트로 시작하기',
                     onPressed: () {
-                      // Implement your logic for starting with text
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => MakeRecipeTextPage()),
+                      );
                     },
                   ),
                 ],
