@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:cook_assistant/ui/theme/color.dart';
 import 'package:cook_assistant/ui/theme/text_styles.dart';
+import 'package:cook_assistant/ui/page/my_fridge/my_fridge.dart';
 import 'package:cook_assistant/widgets/button/primary_button.dart';
 import 'package:cook_assistant/widgets/button/secondary_button.dart';
+
 
 class MyPage extends StatelessWidget {
   @override
@@ -70,19 +72,6 @@ class MyPage extends StatelessWidget {
   }
 }
 
-// Placeholder pages for demonstration
-class MyFridgePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => Scaffold(
-      appBar: AppBar
-        (
-          title: Text(
-            "나의 냉장고",
-            style: AppTextStyles.headingH4.copyWith(color: AppColors.neutralDarkDarkest),
-          )
-      )
-  );
-}
 
 class MyRecipesPage extends StatelessWidget {
   @override
