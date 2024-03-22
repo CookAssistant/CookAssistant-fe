@@ -24,11 +24,11 @@ class SecondaryButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
-          backgroundColor: AppColors.neutralLightLightest, // 투명한 배경
+          backgroundColor: AppColors.neutralLightLightest,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadius),
           ),
-          side: BorderSide(color: AppColors.highlightDark), // 테두리 색상
+          side: BorderSide(color: AppColors.highlightDark),
         ).copyWith(
           foregroundColor: MaterialStateProperty.all(AppColors.highlightDark), // 텍스트 색상
         ),
