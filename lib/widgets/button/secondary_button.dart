@@ -12,7 +12,7 @@ class SecondaryButton extends StatelessWidget {
     Key? key,
     required this.text,
     required this.onPressed,
-    this.borderRadius = 12.0, // 기본 테두리 반경
+    this.borderRadius = 12.0,
   }) : super(key: key);
 
   @override
@@ -20,7 +20,7 @@ class SecondaryButton extends StatelessWidget {
     return Container(
       width: double.infinity,
       height: height,
-      margin: const EdgeInsets.only(bottom: 8.0), // 버튼 사이 간격
+      margin: const EdgeInsets.only(bottom: 8.0),
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
@@ -28,7 +28,7 @@ class SecondaryButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadius),
           ),
-          side: BorderSide(color: AppColors.highlightDark),
+          side: BorderSide(color: AppColors.highlightDark, width: 1.5), // 테두리 두께를 2.0으로 설정
         ).copyWith(
           foregroundColor: MaterialStateProperty.all(AppColors.highlightDark), // 텍스트 색상
         ),
