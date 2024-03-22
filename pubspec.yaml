@@ -61,6 +61,7 @@ flutter:
     - assets/banner1.webp
     - assets/banner2.webp
     - assets/banner3.webp
+    - assets/make_recipe.webp
 
   # To add assets to your application, add an assets section, like this:
   # assets:
