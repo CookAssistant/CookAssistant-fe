@@ -11,7 +11,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _pageController = PageController(viewportFraction: 1);
   double _currentPage = 0;
-  final _bannerImages = ['assets/banner1.webp', 'assets/banner2.webp', 'assets/banner3.webp'];
+  final _bannerImages = ['assets/banner/banner1.webp', 'assets/banner/banner2.webp', 'assets/banner/banner3.webp'];
 
   @override
   @override

@@ -58,10 +58,11 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/banner1.webp
-    - assets/banner2.webp
-    - assets/banner3.webp
-    - assets/make_recipe.webp
+    - assets/banner/banner1.webp
+    - assets/banner/banner2.webp
+    - assets/banner/banner3.webp
+    - assets/banner/make_recipe.webp
+    - assets/icon/avatar.svg
 
   # To add assets to your application, add an assets section, like this:
   # assets:
