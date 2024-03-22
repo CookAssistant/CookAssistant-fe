@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cook_assistant/ui/theme/color.dart';
 import 'package:cook_assistant/ui/theme/text_styles.dart';
+import 'package:cook_assistant/ui/page/my_fridge/my_fridge.dart';
+import 'package:cook_assistant/ui/page/community/community.dart';
 import 'package:dots_indicator/dots_indicator.dart';
+import 'package:cook_assistant/widgets/card.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -70,11 +73,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
             SizedBox(height: 32),
 
-            _buildSectionTitle(context, '나의 냉장고', () {}),
+            _buildSectionTitle(context, '나의 냉장고', MyFridgePage()),
             _buildHorizontalList(),
             SizedBox(height: 32),
 
-            _buildSectionTitle(context, '유저가 만든 레시피', () {}),
+            _buildSectionTitle(context, '유저가 만든 레시피', CommunityPage()),
             _buildHorizontalList(),
             SizedBox(height: 32),
 
@@ -85,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSectionTitle(BuildContext context, String title, VoidCallback onTap) {
+  Widget _buildSectionTitle(BuildContext context, String title, Widget destinationPage) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -96,10 +99,13 @@ class _HomeScreenState extends State<HomeScreen> {
               style: AppTextStyles.headingH4.copyWith(color: AppColors.neutralDarkDarkest),
           ),
           GestureDetector(
-              onTap: onTap,
+              onTap: () {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => destinationPage));
+              },
               child: Text(
                 '더보기',
                 style: AppTextStyles.actionM.copyWith(color: AppColors.highlightDarkest),
+
               ),
           ),
         ],

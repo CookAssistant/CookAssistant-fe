@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cook_assistant/ui/theme/color.dart';
 import 'package:cook_assistant/ui/theme/text_styles.dart';
-import 'package:cook_assistant/widgets/card.dart'; // 적절한 경로로 수정해주세요
+import 'package:cook_assistant/widgets/card.dart';
 
 class CommunityPage extends StatelessWidget {
   @override
