@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cook_assistant/ui/theme/color.dart';
 import 'package:cook_assistant/ui/theme/text_styles.dart';
 import 'package:cook_assistant/widgets/button/primary_button.dart';
+import 'package:cook_assistant/ui/page/add_ingredients/add_ingredients.dart'; // Make sure this import is correct
+
 
 class FridgeCard extends StatelessWidget {
   final String title;
@@ -165,7 +167,9 @@ class MyFridgePage extends StatelessWidget {
               child: PrimaryButton(
                 text: '식재료 추가하기',
                 onPressed: () {
-                  // Implement your add item functionality here
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => AddIngredientsPage(), // Ensure that you have AddIngredientsPage class defined in the imported file
+                  ));
                 },
                 borderRadius: 12.0, // Optional, adjust as per your design
               ),
