@@ -27,7 +27,6 @@ class AddIngredientsPage extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
           children: [
-            const SizedBox(height: 36.0),
             Text(
               '식재료 추가 AI 도우미',
               textAlign: TextAlign.center,
