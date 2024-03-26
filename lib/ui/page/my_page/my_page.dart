@@ -20,7 +20,7 @@ class MyPage extends StatelessWidget {
           style: AppTextStyles.headingH4.copyWith(color: AppColors.neutralDarkDarkest),
         ),
       ),
-      body: ListView( // 상단 및 하단 패딩 추가
+      body: ListView(
         children: <Widget>[
           DrawerHeader(
             child: Column(

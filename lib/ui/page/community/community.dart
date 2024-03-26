@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cook_assistant/ui/theme/color.dart';
 import 'package:cook_assistant/ui/theme/text_styles.dart';
+import 'package:cook_assistant/ui/page/recipe_detail/recipe_detail.dart';
 import 'package:cook_assistant/widgets/card.dart';
 
 class CommunityPage extends StatelessWidget {
@@ -14,7 +15,7 @@ class CommunityPage extends StatelessWidget {
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(8.0), // 전체 GridView에 패딩을 추가합니다.
+        padding: const EdgeInsets.all(8.0),
         child: GridView.builder(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
@@ -25,12 +26,22 @@ class CommunityPage extends StatelessWidget {
           itemBuilder: (BuildContext context, int index) {
             String title = '락토베지테리언${index + 1}';
             String subtitle = '돼지고기 김치찌개${index + 1}';
-            String imageUrl = 'assets/images/mushroom.jpg'; // 실제 이미지 경로로 교체해주세요.
+            String imageUrl = 'assets/images/mushroom.jpg';
 
-            return CustomCard(
-              title: title,
-              subtitle: subtitle,
-              imageUrl: imageUrl,
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RecipeDetailPage(),
+                  ),
+                );
+              },
+              child: CustomCard(
+                title: title,
+                subtitle: subtitle,
+                imageUrl: imageUrl,
+              ),
             );
           },
         ),

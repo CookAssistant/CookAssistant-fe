@@ -36,7 +36,7 @@ class AddIngredientsPage extends StatelessWidget {
             const SizedBox(height: 8.0),
             Text(
               '음성 인식나 이미지 인식을 통해 손쉽게 재료를 등록해 보세요!',
-              textAlign: TextAlign.center, // Center-aligned text
+              textAlign: TextAlign.center,
               style: AppTextStyles.bodyS.copyWith(
                   color: AppColors.neutralDarkLight),
             ),
@@ -53,7 +53,7 @@ class AddIngredientsPage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start, // Add this line
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     '식재료 이름',
@@ -92,7 +92,7 @@ class AddIngredientsPage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start, // Add this line
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     '소비기한',

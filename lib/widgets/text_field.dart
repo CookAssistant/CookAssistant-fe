@@ -19,6 +19,7 @@ class CustomTextField extends StatelessWidget {
     return TextField(
       controller: controller,
       style: AppTextStyles.bodyM.copyWith(color: AppColors.neutralDarkDarkest),
+      cursorColor: AppColors.highlightDark,
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: AppTextStyles.bodyM.copyWith(color: AppColors.neutralDarkLightest),
