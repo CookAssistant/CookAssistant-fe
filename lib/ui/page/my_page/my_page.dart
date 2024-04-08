@@ -4,7 +4,7 @@ import 'package:cook_assistant/ui/theme/color.dart';
 import 'package:cook_assistant/ui/theme/text_styles.dart';
 import 'package:cook_assistant/ui/page/community/community.dart';
 import 'package:cook_assistant/ui/page/my_fridge/my_fridge.dart';
-import 'package:cook_assistant/ui/page/auth/logout.dart';
+import 'package:cook_assistant/widgets/dialog.dart';
 import 'package:cook_assistant/widgets/button/primary_button.dart';
 import 'package:cook_assistant/widgets/button/secondary_button.dart';
 
@@ -76,5 +76,15 @@ class MyPage extends StatelessWidget {
 }
 
 void _showLogoutDialog(BuildContext context) {
-  Logout.showLogoutDialog(context);
+  CustomAlertDialog.showCustomDialog(
+    context: context,
+    title: '로그아웃',
+    content: '로그아웃 하시겠습니까? 앱을 이용하기 위해선 다시 로그인 해야합니다.',
+    cancelButtonText: '취소',
+    confirmButtonText: '로그아웃',
+    onConfirm: () {
+      // 로그아웃 처리 로직
+      // 예를 들어, 사용자 세션을 클리어하거나 로그인 페이지로 이동
+    },
+  );
 }
