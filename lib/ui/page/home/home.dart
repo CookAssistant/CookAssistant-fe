@@ -5,8 +5,13 @@ import 'package:cook_assistant/ui/page/my_fridge/my_fridge.dart';
 import 'package:cook_assistant/ui/page/community/community.dart';
 import 'package:dots_indicator/dots_indicator.dart';
 import 'package:cook_assistant/widgets/card.dart';
+import 'package:cook_assistant/widgets/default_card.dart';
+
 
 class HomeScreen extends StatefulWidget {
+  final Function(int)? onNavigateToPage;
+  HomeScreen({Key? key, this.onNavigateToPage}) : super(key: key);
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -16,7 +21,6 @@ class _HomeScreenState extends State<HomeScreen> {
   double _currentPage = 0;
   final _bannerImages = ['assets/banners/banner1.webp', 'assets/banners/banner2.webp', 'assets/banners/banner3.webp'];
 
-  @override
   @override
   void initState() {
     super.initState();
@@ -77,7 +81,10 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildHorizontalList(),
             SizedBox(height: 32),
 
-            _buildSectionTitle(context, '유저가 만든 레시피', CommunityPage()),
+            _buildSectionTitle(context, '유저가 만든 레시피', CommunityPage(),
+                onTap: () {
+                  widget.onNavigateToPage?.call(1);
+            }),
             _buildHorizontalList(),
             SizedBox(height: 32),
 
@@ -88,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSectionTitle(BuildContext context, String title, Widget destinationPage) {
+  Widget _buildSectionTitle(BuildContext context, String title, Widget destinationPage, {Function()? onTap}) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -99,7 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
               style: AppTextStyles.headingH4.copyWith(color: AppColors.neutralDarkDarkest),
           ),
           GestureDetector(
-              onTap: () {
+              onTap: onTap ?? () {
                 Navigator.of(context).push(MaterialPageRoute(builder: (context) => destinationPage));
               },
               child: Text(
@@ -126,28 +133,12 @@ class _HomeScreenState extends State<HomeScreen> {
             return SizedBox(width: 16);
           }
 
-          return Container(
-            width: 189,
-            child: Card(
-              color: AppColors.highlightLightest,
-              elevation: 0,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Icon(Icons.photo, size: 32, color: AppColors.highlightLight),
-                  Text(
-                    '소비기한: 00일',
-                    style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkDarkest),
-                  ),
-                  Text(
-                    '식재료 이름',
-                    style: AppTextStyles.headingH4.copyWith(color: AppColors.neutralDarkDarkest),
-                  ),
-                ],
-              ),
-            ),
+          return DefaultCard(
+            expiryDays: '00', // You'd likely replace '00' with actual data
+            title: '식재료 이름', // Replace with actual ingredient name
           );
         },
+
         separatorBuilder: (context, index) => SizedBox(width: 8),
         physics: ClampingScrollPhysics(),
       ),

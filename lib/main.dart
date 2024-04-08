@@ -31,13 +31,16 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
 
-  final List<Widget> _widgetOptions = <Widget>[
-    HomeScreen(),
-    CommunityPage(),
-    RecipeCreationPage(),
-    MyPage(),
-  ];
-
+  List<Widget> _getWidgetOptions() {
+    return [
+      HomeScreen(onNavigateToPage: (index) {
+        _onItemTapped(index);
+      }),
+      CommunityPage(),
+      RecipeCreationPage(),
+      MyPage(),
+    ];
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -48,7 +51,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _widgetOptions.elementAt(_selectedIndex),
+      body: _getWidgetOptions().elementAt(_selectedIndex),
       
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
