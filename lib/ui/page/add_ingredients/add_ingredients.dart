@@ -111,7 +111,23 @@ class AddIngredientsPage extends StatelessWidget {
             PrimaryButton(
               text: '완료하기',
               onPressed: () {
-                // TODO: Implement completion logic
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('등록 완료'),
+                      content: Text('등록되었습니다.'),
+                      actions: <Widget>[
+                        TextButton(
+                          child: Text('확인'),
+                          onPressed: () {
+                            Navigator.of(context).pop(); // 알림 창을 닫습니다.
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
               },
             ),
           ],
