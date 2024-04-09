@@ -9,7 +9,6 @@ import 'package:cook_assistant/widgets/button/primary_button.dart';
 import 'package:cook_assistant/widgets/button/secondary_button.dart';
 
 
-
 class MyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -42,8 +41,8 @@ class MyPage extends StatelessWidget {
             ),
           ),
           _buildTile(context, '나의 냉장고', MyFridgePage()),
-          _buildTile(context, '나의 레시피', CommunityPage()),
-          _buildTile(context, '좋아요한 레시피', CommunityPage()),
+          _buildTile(context, '나의 레시피', CommunityPage(pageTitle: '나의 레시피', initialFilterCriteria: '나의 레시피')),
+          _buildTile(context, '좋아요한 레시피', CommunityPage(pageTitle: '좋아요한 레시피', initialFilterCriteria: '좋아요한 레시피')),
           ListTile(
             title: Text('로그아웃', style: AppTextStyles.bodyM.copyWith(color: AppColors.neutralDarkDarkest)),
             trailing: SvgPicture.asset(

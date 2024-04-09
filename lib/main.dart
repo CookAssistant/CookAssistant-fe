@@ -36,7 +36,7 @@ class _MyHomePageState extends State<MyHomePage> {
       HomeScreen(onNavigateToPage: (index) {
         _onItemTapped(index);
       }),
-      CommunityPage(),
+      CommunityPage(pageTitle: '커뮤니티'),
       RecipeCreationPage(),
       MyPage(),
     ];
