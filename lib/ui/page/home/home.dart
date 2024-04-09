@@ -81,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildHorizontalList(),
             SizedBox(height: 32),
 
-            _buildSectionTitle(context, '유저가 만든 레시피', CommunityPage(),
+            _buildSectionTitle(context, '유저가 만든 레시피', CommunityPage(pageTitle: '커뮤니티'),
                 onTap: () {
                   widget.onNavigateToPage?.call(1);
             }),
