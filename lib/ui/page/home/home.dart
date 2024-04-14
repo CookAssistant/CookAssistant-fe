@@ -6,6 +6,8 @@ import 'package:cook_assistant/ui/page/community/community.dart';
 import 'package:dots_indicator/dots_indicator.dart';
 import 'package:cook_assistant/widgets/card.dart';
 import 'package:cook_assistant/widgets/default_card.dart';
+import 'package:cook_assistant/ui/page/recipe_detail/recipe_detail.dart';
+
 
 
 class HomeScreen extends StatefulWidget {
@@ -78,14 +80,14 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(height: 32),
 
             _buildSectionTitle(context, '나의 냉장고', MyFridgePage()),
-            _buildHorizontalList(),
+            _buildHorizontalListForFridge(),
             SizedBox(height: 32),
 
             _buildSectionTitle(context, '유저가 만든 레시피', CommunityPage(pageTitle: '커뮤니티'),
                 onTap: () {
                   widget.onNavigateToPage?.call(1);
             }),
-            _buildHorizontalList(),
+            _buildHorizontalListForRecipe(),
             SizedBox(height: 32),
 
           ],
@@ -121,27 +123,60 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
 
-  Widget _buildHorizontalList() {
+  Widget _buildHorizontalListForRecipe() {
     return Container(
       height: 189,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: 5+2,
         itemBuilder: (context, index) {
-
           if (index == 0 || index == 6) {
             return SizedBox(width: 16);
           }
-
-          return DefaultCard(
-            expiryDays: '00', // You'd likely replace '00' with actual data
-            title: '식재료 이름', // Replace with actual ingredient name
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => RecipeDetailPage(),
+                ),
+              );
+            },
+            child: SizedBox(
+              width: 189,  // 카드의 너비 지정
+              height: 189,  // 카드의 높이 지정
+              child: CustomCard(
+                title: '임시타이틀',
+                subtitle: '부제목',
+                imageUrl: 'assets/images/red_onion.jpg',
+              ),
+            ),
           );
         },
-
         separatorBuilder: (context, index) => SizedBox(width: 8),
         physics: ClampingScrollPhysics(),
       ),
     );
   }
+}
+
+Widget _buildHorizontalListForFridge() {
+  return Container(
+    height: 189,
+    child: ListView.separated(
+      scrollDirection: Axis.horizontal,
+      itemCount: 5+2,
+      itemBuilder: (context, index) {
+        if (index == 0 || index == 6) {
+          return SizedBox(width: 16);
+        }
+        return DefaultCard(
+          expiryDays: '00', // You'd likely replace '00' with actual data
+          title: '식재료 이름', // Replace with actual ingredient name
+        );
+      },
+      separatorBuilder: (context, index) => SizedBox(width: 8),
+      physics: ClampingScrollPhysics(),
+    ),
+  );
 }
