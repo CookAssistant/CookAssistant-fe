@@ -170,9 +170,24 @@ Widget _buildHorizontalListForFridge() {
         if (index == 0 || index == 6) {
           return SizedBox(width: 16);
         }
-        return DefaultCard(
-          expiryDays: '00', // You'd likely replace '00' with actual data
-          title: '식재료 이름', // Replace with actual ingredient name
+        return GestureDetector(/*
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => RecipeDetailPage(),
+              ),
+            );
+          },*/
+          child: SizedBox(
+            width: 189,  // 카드의 너비 지정
+            height: 189,  // 카드의 높이 지정
+            child: CustomCard(
+              title: '소비기한 : 2024.04.15',
+              subtitle: '스팸 2캔',
+              imageUrl: 'assets/images/mushroom.jpg',
+            ),
+          ),
         );
       },
       separatorBuilder: (context, index) => SizedBox(width: 8),
