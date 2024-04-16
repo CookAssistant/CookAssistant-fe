@@ -3,6 +3,7 @@ import 'package:cook_assistant/ui/theme/color.dart';
 import 'package:cook_assistant/ui/theme/text_styles.dart';
 import 'package:cook_assistant/widgets/button/primary_button.dart';
 import 'package:cook_assistant/widgets/button/secondary_button.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 enum RecordingState { Stopped, Recording, Finished }
 
@@ -14,27 +15,93 @@ class MakeRecipeVoicePage extends StatefulWidget {
 class _RecordScreenState extends State<MakeRecipeVoicePage> {
   RecordingState _recordingState = RecordingState.Stopped;
   bool isImageGenerationEnabled = false;
+  stt.SpeechToText _speechToText = stt.SpeechToText();
+  bool _isListening = false;
+  String _text = '녹음하기 버튼을 누르세요';
+
+  @override
+  void initState() {
+    super.initState();
+    _speechToText.initialize(
+        onStatus: (status) {
+          setState(() {
+            _isListening = _speechToText.isListening;
+          });
+        },
+        onError: (errorNotification) {
+          setState(() {
+            _text = 'Speech recognition error: ${errorNotification.errorMsg}';
+          });
+        }
+    );
+  }
 
   void toggleRecording() {
     setState(() {
       if (_recordingState == RecordingState.Stopped) {
         _recordingState = RecordingState.Recording;
+        _listen();
       } else if (_recordingState == RecordingState.Recording) {
         _recordingState = RecordingState.Finished;
+        _stopListening();
       } else {
-        navigateToNextPage();
+        showTextDialog();
       }
     });
   }
 
-  void navigateToNextPage() {
+  void _listen() {
+    if (!_isListening) {
+      _speechToText.listen(onResult: (result) {
+        setState(() {
+          _text = result.recognizedWords;
+        });
+      },
+        localeId: 'ko_KR',
+      );
+    }
+  }
 
+  void _stopListening() {
+    if (_isListening) {
+      _speechToText.stop();
+    }
+  }
+
+  void navigateToNextPage() {
+    // Implement navigation logic
   }
 
   void toggleImageGeneration() {
     setState(() {
       isImageGenerationEnabled = !isImageGenerationEnabled;
     });
+  }
+
+  void showTextDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Recorded Text'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(_text),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -106,7 +173,16 @@ class _RecordScreenState extends State<MakeRecipeVoicePage> {
                 ),
               ],
             ),
-            Expanded(child: Container()), // 버튼을 아래로 밀기 위한 공간
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 32.0),
+                alignment: Alignment.center,
+                child: Text(
+                  _text,
+                  style: AppTextStyles.bodyL.copyWith(color: AppColors.neutralDarkDarkest),
+                ),
+              ),
+            ),
           ],
         ),
       ),

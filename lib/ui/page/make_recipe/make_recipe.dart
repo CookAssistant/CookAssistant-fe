@@ -3,6 +3,7 @@ import 'package:cook_assistant/ui/theme/color.dart';
 import 'package:cook_assistant/ui/theme/text_styles.dart';
 import 'package:cook_assistant/ui/page/make_recipe/make_recipe_voice.dart';
 import 'package:cook_assistant/ui/page/make_recipe/make_recipe_text.dart';
+import 'package:cook_assistant/ui/page/make_recipe/voice_test.dart';
 import 'package:cook_assistant/widgets/button/primary_button.dart';
 import 'package:cook_assistant/widgets/button/secondary_button.dart';
 
@@ -68,7 +69,7 @@ class RecipeCreationPage extends StatelessWidget {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => MakeRecipeTextPage()),
+                        MaterialPageRoute(builder: (context) => Stt()),
                       );
                     },
                   ),
