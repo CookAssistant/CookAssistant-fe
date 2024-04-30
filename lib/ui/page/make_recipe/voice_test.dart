@@ -1,187 +1,148 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:speech_to_text/speech_recognition_error.dart';
-import 'package:speech_to_text/speech_recognition_result.dart';
-import 'package:speech_to_text/speech_to_text.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 
-class Stt extends StatelessWidget {
-  const Stt({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'Flutter Demo',
-      home: SttPage(),
-    );
-  }
+void main() {
+  runApp(MyApp());
 }
 
-class SttPage extends StatefulWidget {
-  const SttPage({Key? key}) : super(key: key);
-
-  @override
-  _SttPageState createState() => _SttPageState();
-}
-
-class _SttPageState extends State<SttPage> {
-  bool _hasSpeech = false;
-  bool _logEvents = false;
-  double level = 0.0;
-  double minSoundLevel = 50000;
-  double maxSoundLevel = -50000;
-  String lastWords = '';
-  String lastError = '';
-  String lastStatus = '';
-  String _currentLocaleId = '';
-  List<LocaleName> _localeNames = [];
-  final SpeechToText speech = SpeechToText();
-
-  @override
-  void initState() {
-    super.initState();
-
-    initSpeechState();
-  }
-
-  Future<void> initSpeechState() async {
-    _logEvent('Initialize');
-    var hasSpeech = await speech.initialize(
-        onError: errorListener,
-        onStatus: statusListener,
-        debugLogging: true,
-        finalTimeout: Duration(milliseconds: 0));
-    if (hasSpeech) {
-      _localeNames = await speech.locales();
-
-      var systemLocale = await speech.systemLocale();
-      _currentLocaleId = systemLocale?.localeId ?? '';
-    }
-
-    if (!mounted) return;
-
-    setState(() {
-      _hasSpeech = hasSpeech;
-    });
-  }
-
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        body: Column(children: [
-          Expanded(
-            flex: 4,
-            child: Container(
-              padding: EdgeInsets.only(top: 100.0),
-              child: Column(
-                children: <Widget>[
-                  const Center(
-                    child: Text(
-                      '음성 인식 결과',
-                      style: TextStyle(fontSize: 22.0),
-                    ),
-                  ),
-                  Expanded(
-                    child: Stack(
-                      children: <Widget>[
-                        Container(
-                          child: Center(
-                            child: Text(
-                              lastWords,
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+      home: HomePage(),
+    );
+  }
+}
+
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  String _extractedText = '';
+  final ImagePicker _picker = ImagePicker();
+
+  VisionApiService visionApiService = VisionApiService();
+
+  void _pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      String? text = await visionApiService.annotateImage(image.path);
+      setState(() {
+        _extractedText = text ?? 'No text detected';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Text Detection App'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            if (_extractedText.isNotEmpty) Text(_extractedText),
+            ElevatedButton(
+              onPressed: _pickImage,
+              child: Text('Pick an Image'),
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.only(bottom: 50.0),
-            child: Column(
-              children: <Widget>[
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: <Widget>[
-                    IconButton(
-                      onPressed: !_hasSpeech || speech.isListening
-                          ? null
-                          : startListening,
-                      icon: Icon(Icons.mic),
-                    ),
-                    Container(
-                        margin: const EdgeInsets.only(top: 0.0),
-                        child: const Text("click!",
-                            style: TextStyle(
-                                fontSize: 12.0,
-                                fontWeight: FontWeight.w400,
-                                color: Colors.blue)))
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ]),
+          ],
+        ),
       ),
     );
   }
+}
 
-  void startListening() {
-    _logEvent('start listening');
-    lastWords = '';
-    lastError = '';
-    speech.listen(
-        onResult: resultListener,
-        listenFor: Duration(seconds: 30),
-        pauseFor: Duration(seconds: 5),
-        partialResults: true,
-        localeId: _currentLocaleId,
-        onSoundLevelChange: soundLevelListener,
-        cancelOnError: true,
-        listenMode: ListenMode.confirmation);
-    setState(() {});
-  }
+class VisionApiService {
+  final String baseUrl = 'https://vision.googleapis.com/v1/images:annotate';
+  final String projectId = 'cookassistant-420213';
+  final String gcloudToken = 'your-gcloud-token';
 
-  void resultListener(SpeechRecognitionResult result) {
-    _logEvent(
-        'Result listener final: ${result.finalResult}, words: ${result.recognizedWords}');
-    setState(() {
-      lastWords = result.recognizedWords;
-    });
-  }
+  Future<String?> annotateImage(String imagePath) async {
+    final request = VisionRequest(
+      requests: [
+        AnnotateImageRequest(
+          image: _Image(
+            content: await encodeImageToBase64(imagePath),
+          ),
+          features: [Feature()],
+        ),
+      ],
+    );
 
-  void soundLevelListener(double level) {
-    minSoundLevel = min(minSoundLevel, level);
-    maxSoundLevel = max(maxSoundLevel, level);
-    // _logEvent('sound level $level: $minSoundLevel - $maxSoundLevel ');
-    setState(() {
-      this.level = level;
-    });
-  }
+    final headers = {
+      HttpHeaders.authorizationHeader: "Bearer $gcloudToken",
+      "x-goog-user-project": projectId,
+      HttpHeaders.contentTypeHeader: "application/json; charset=utf-8",
+    };
 
-  void errorListener(SpeechRecognitionError error) {
-    _logEvent(
-        'Received error status: $error, listening: ${speech.isListening}');
-    setState(() {
-      lastError = '${error.errorMsg} - ${error.permanent}';
-    });
-  }
+    final response = await http.post(
+      Uri.parse(baseUrl),
+      headers: headers,
+      body: jsonEncode(request.toJson()),
+    );
 
-  void statusListener(String status) {
-    _logEvent(
-        'Received listener status: $status, listening: ${speech.isListening}');
-    setState(() {
-      lastStatus = '$status';
-    });
-  }
-
-  void _logEvent(String eventDescription) {
-    if (_logEvents) {
-      var eventTime = DateTime.now().toIso8601String();
-      print('$eventTime $eventDescription');
+    if (response.statusCode == 200) {
+      Map<String, dynamic> jsonResponse = json.decode(response.body);
+      List<dynamic> textAnnotations = jsonResponse['responses'][0]['textAnnotations'];
+      if (textAnnotations.isNotEmpty) {
+        return textAnnotations[0]['description'];
+      }
     }
+    return null;
   }
+}
+
+Future<String> encodeImageToBase64(String imagePath) async {
+  final imageFile = File(imagePath);
+  final Uint8List imageBytes = await imageFile.readAsBytes();
+  return base64Encode(imageBytes);
+}
+
+class VisionRequest {
+  final List<AnnotateImageRequest> requests;
+
+  VisionRequest({required this.requests});
+
+  Map<String, dynamic> toJson() => {
+    'requests': requests.map((request) => request.toJson()).toList(),
+  };
+}
+
+class AnnotateImageRequest {
+  final _Image image;
+  final List<Feature> features;
+
+  AnnotateImageRequest({required this.image, required this.features});
+
+  Map<String, dynamic> toJson() => {
+    'image': image.toJson(),
+    'features': features.map((feature) => feature.toJson()).toList(),
+  };
+}
+
+class _Image {
+  final String content;
+
+  _Image({required this.content});
+
+  Map<String, dynamic> toJson() => {
+    'content': content,
+  };
+}
+
+class Feature {
+  final String type = "TEXT_DETECTION";
+
+  Map<String, dynamic> toJson() => {
+    'type': type,
+  };
 }

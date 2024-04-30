@@ -4,6 +4,8 @@ import 'package:cook_assistant/ui/theme/text_styles.dart';
 import 'package:cook_assistant/widgets/button/primary_button.dart';
 import 'package:cook_assistant/widgets/button/secondary_button.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:cook_assistant/ui/page/make_recipe/making.dart';
+
 
 enum RecordingState { Stopped, Recording, Finished }
 
@@ -17,7 +19,7 @@ class _RecordScreenState extends State<MakeRecipeVoicePage> {
   bool isImageGenerationEnabled = false;
   stt.SpeechToText _speechToText = stt.SpeechToText();
   bool _isListening = false;
-  String _text = '녹음하기 버튼을 누르세요';
+  String _text = '나는 락토오보베지테리언인데 두부를 이용해서 돼지고기 김치찌개를 만들거야.';
 
   @override
   void initState() {
@@ -45,7 +47,12 @@ class _RecordScreenState extends State<MakeRecipeVoicePage> {
         _recordingState = RecordingState.Finished;
         _stopListening();
       } else {
-        showTextDialog();
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MakingPage(recordedText: _text),
+          ),
+        );
       }
     });
   }
