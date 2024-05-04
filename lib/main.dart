@@ -5,8 +5,20 @@ import 'package:cook_assistant/ui/page/make_recipe/make_recipe.dart';
 import 'package:cook_assistant/ui/page/my_page/my_page.dart';
 import 'package:cook_assistant/ui/theme/color.dart';
 import 'package:cook_assistant/ui/theme/text_styles.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() => runApp(MyApp());
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await dotenv.load(fileName: 'assets/config/.env');
+    print("환경 변수가 로드되었습니다");
+    print("Loaded API Key: ${dotenv.env['OPENAI_API_KEY']}");
+    runApp(MyApp());
+  } catch (e) {
+    print("Failed to load .env file: $e");
+  }
+}
 
 class MyApp extends StatelessWidget {
   @override

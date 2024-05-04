@@ -69,7 +69,7 @@ class RecipeCreationPage extends StatelessWidget {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => Stt()),
+                        MaterialPageRoute(builder: (context) => MakeRecipeTextPage()),
                       );
                     },
                   ),
