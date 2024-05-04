@@ -6,6 +6,7 @@ import 'package:cook_assistant/widgets/text_field.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:cook_assistant/resource/config.dart';
 
 
 class MakingPage extends StatefulWidget {
@@ -18,6 +19,8 @@ class MakingPage extends StatefulWidget {
 }
 
 class _MakingPageState extends State<MakingPage> {
+  late String apiKey;
+
   final String userRecipe = "잠시만 기다려 주세요";
   final String userDiet = "잠시만 기다려 주세요";
   final String userIngredient = "잠시만 기다려 주세요";
@@ -45,15 +48,16 @@ class _MakingPageState extends State<MakingPage> {
   }
 
   Future<void> extractKeywords(String text) async {
-    final jsonString = await rootBundle.loadString('assets/config.json');
+/*
+    final jsonString = await rootBundle.loadString('assets/config/config.json');
     final Map<String, dynamic> config = json.decode(jsonString);
     final apiKey = config['OPENAI_API_KEY']; // JSON 파일에서 API 키를 로드
-
+*/
     final response = await http.post(
       Uri.parse('https://api.openai.com/v1/chat/completions'),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $apiKey', // JSON 파일에서 로드한 API 키 사용
+        'Authorization': 'Bearer ${Config.apiKey}',
       },
       body: jsonEncode({
         'model': 'gpt-3.5-turbo',
