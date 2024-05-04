@@ -70,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.all(8.0),
               child: DotsIndicator(
                 dotsCount: _bannerImages.length,
-                position: _currentPage,
+                position: _currentPage.round(),
                 decorator: DotsDecorator(
                   activeColor: AppColors.highlightDarkest,
                 ),
