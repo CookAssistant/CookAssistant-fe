@@ -127,33 +127,18 @@ class _MakingPageState extends State<MakingPage> {
               style: AppTextStyles.bodyL.copyWith(color: AppColors.neutralDarkDarkest),
             ),
             SizedBox(height: 32.0),
-            Text(
-              '사용자 식단',
-              style: AppTextStyles.headingH5.copyWith(
-                  color: AppColors.neutralDarkDark),
-            ),
             CustomTextField(
               controller: _dietController,
               label: '사용자 식단',
               hint: ' ',
             ),
-            SizedBox(height: 16.0),
-            Text(
-              '레시피 이름',
-              style: AppTextStyles.headingH5.copyWith(
-                  color: AppColors.neutralDarkDark),
-            ),
+            SizedBox(height: 32.0),
             CustomTextField(
               controller: _recipeController,
               label: '레시피 이름',
               hint: ' ',
             ),
-            SizedBox(height: 16.0),
-            Text(
-              '사용할 재료',
-              style: AppTextStyles.headingH5.copyWith(
-                  color: AppColors.neutralDarkDark),
-            ),
+            SizedBox(height: 32.0),
             CustomTextField(
               controller: _ingredientDateController,
               label: '사용할 재료',
