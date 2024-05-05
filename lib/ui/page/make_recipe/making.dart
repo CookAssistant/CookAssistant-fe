@@ -48,11 +48,7 @@ class _MakingPageState extends State<MakingPage> {
   }
 
   Future<void> extractKeywords(String text) async {
-/*
-    final jsonString = await rootBundle.loadString('assets/config/config.json');
-    final Map<String, dynamic> config = json.decode(jsonString);
-    final apiKey = config['OPENAI_API_KEY']; // JSON 파일에서 API 키를 로드
-*/
+
     final response = await http.post(
       Uri.parse('https://api.openai.com/v1/chat/completions'),
       headers: {
@@ -62,14 +58,15 @@ class _MakingPageState extends State<MakingPage> {
       body: jsonEncode({
         'model': 'gpt-3.5-turbo',
         'messages': [
-          {'role': 'system', 'content': 'Regardless of the dish the user inputs, convert it into a vegan-friendly recipe.please answer in korean'},
-          {'role': 'user', 'content': "find soup recipe"},
+          {'role': 'system', 'content': 'You are a program that extracts user diet preferences, recipe names, and ingredient keywords from entered text. Parse the given string. Please answer in korean'},
+          {'role': 'user', 'content': '다음 텍스트를 사용자 식단/레시피 이름/사용할 재료를 json 형식으로 알려줘. 만약 사용할 재료가 언급되어 있지 않는 경우 다른 재료를 찾지 말고 "모든 재료" 라고 출력해줘. 다른 말은 하지 마. ${text}'},
         ],
       }),
     );
 
     if (response.statusCode == 200) {
       final result = jsonDecode(utf8.decode(response.bodyBytes));
+      print(result);
       setState(() {
         _response = result['choices'][0]['message']['content'].trim();
       });
@@ -88,7 +85,7 @@ class _MakingPageState extends State<MakingPage> {
           style: AppTextStyles.headingH4.copyWith(color: AppColors.neutralDarkDarkest),
         ),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

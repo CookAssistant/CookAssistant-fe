@@ -19,7 +19,7 @@ class _RecordScreenState extends State<MakeRecipeVoicePage> {
   bool isImageGenerationEnabled = false;
   stt.SpeechToText _speechToText = stt.SpeechToText();
   bool _isListening = false;
-  String _text = 'find soup recipe';
+  String _text = '';
 
   @override
   void initState() {
