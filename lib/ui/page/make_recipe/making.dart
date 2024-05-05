@@ -29,7 +29,8 @@ class _MakingPageState extends State<MakingPage> {
   final TextEditingController _recipeController = TextEditingController();
   final TextEditingController _ingredientDateController = TextEditingController();
 
-  String _response = 'init';
+  String _response = 'string init';
+  String _responseJsonString = 'json init';
 
   @override
   void initState() {
@@ -59,17 +60,24 @@ class _MakingPageState extends State<MakingPage> {
         'model': 'gpt-3.5-turbo',
         'messages': [
           {'role': 'system', 'content': 'You are a program that extracts user diet preferences, recipe names, and ingredient keywords from entered text. Parse the given string. Please answer in korean'},
-          {'role': 'user', 'content': '다음 텍스트를 사용자 식단/레시피 이름/사용할 재료를 json 형식으로 알려줘. 만약 사용할 재료가 언급되어 있지 않는 경우 다른 재료를 찾지 말고 "모든 재료" 라고 출력해줘. 다른 말은 하지 마. ${text}'},
+          {'role': 'user', 'content': '다음 텍스트에서 userDiet, recipeName, ingredients를 추출해서 json 형식으로 알려줘. 만약 사용할 재료가 언급되어 있지 않는 경우 다른 재료를 찾지 말고 "모든 재료" 라고 출력해줘. 다른 말은 하지 마. ${text}'},
         ],
       }),
     );
 
     if (response.statusCode == 200) {
       final result = jsonDecode(utf8.decode(response.bodyBytes));
-      print(result);
-      setState(() {
-        _response = result['choices'][0]['message']['content'].trim();
-      });
+      if (result['choices'] != null && result['choices'].isNotEmpty) {
+        final messageContent = result['choices'][0]['message']['content'];
+        Map<String, dynamic> contentJson = jsonDecode(messageContent);
+        setState(() {
+          _response = messageContent;
+          _responseJsonString = jsonEncode(contentJson);
+          _dietController.text = contentJson['userDiet'] ?? "정보 없음";
+          _recipeController.text = contentJson['recipeName'] ?? "정보 없음";
+          _ingredientDateController.text = contentJson['ingredients'] ?? "정보 없음";
+        });
+      }
     } else {
       setState(() {
         _response = '오류가 발생했습니다. 상태 코드: ${response.statusCode}';
@@ -102,37 +110,35 @@ class _MakingPageState extends State<MakingPage> {
             ),
             SizedBox(height: 32.0),
             Text(
+              'String Response:',
+              style: AppTextStyles.bodyL.copyWith(color: AppColors.neutralDarkDarkest),
+            ),
+            Text(
               _response,
               style: AppTextStyles.bodyL.copyWith(color: AppColors.neutralDarkDarkest),
             ),
             SizedBox(height: 32.0),
             Text(
-              '사용자 식단',
-              style: AppTextStyles.headingH5.copyWith(
-                  color: AppColors.neutralDarkDark),
+              'JSON Response:',
+              style: AppTextStyles.bodyL.copyWith(color: AppColors.neutralDarkDarkest),
             ),
+            Text(
+              _responseJsonString,
+              style: AppTextStyles.bodyL.copyWith(color: AppColors.neutralDarkDarkest),
+            ),
+            SizedBox(height: 32.0),
             CustomTextField(
               controller: _dietController,
               label: '사용자 식단',
               hint: ' ',
             ),
-            SizedBox(height: 16.0),
-            Text(
-              '레시피 이름',
-              style: AppTextStyles.headingH5.copyWith(
-                  color: AppColors.neutralDarkDark),
-            ),
+            SizedBox(height: 32.0),
             CustomTextField(
               controller: _recipeController,
               label: '레시피 이름',
               hint: ' ',
             ),
-            SizedBox(height: 16.0),
-            Text(
-              '사용할 재료',
-              style: AppTextStyles.headingH5.copyWith(
-                  color: AppColors.neutralDarkDark),
-            ),
+            SizedBox(height: 32.0),
             CustomTextField(
               controller: _ingredientDateController,
               label: '사용할 재료',
