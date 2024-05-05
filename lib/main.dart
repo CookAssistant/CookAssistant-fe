@@ -6,6 +6,8 @@ import 'package:cook_assistant/ui/page/my_page/my_page.dart';
 import 'package:cook_assistant/ui/theme/color.dart';
 import 'package:cook_assistant/ui/theme/text_styles.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:cook_assistant/ui/page/auth/register.dart';
+import 'package:cook_assistant/ui/page/auth/login.dart';
 
 
 void main() async {
@@ -14,6 +16,7 @@ void main() async {
     await dotenv.load(fileName: 'assets/config/.env');
     print("환경 변수가 로드되었습니다");
     print("Loaded API Key: ${dotenv.env['OPENAI_API_KEY']}");
+    print("Loaded API Key: ${dotenv.env['BASE_URL']}");
     runApp(MyApp());
   } catch (e) {
     print("Failed to load .env file: $e");
@@ -30,7 +33,13 @@ class MyApp extends StatelessWidget {
         primaryColor: AppColors.highlightDarkest,
         splashColor: Colors.transparent,
       ),
-      home: MyHomePage(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => MyHomePage(),
+        '/login': (context) => LoginPage(),
+        '/register': (context) => RegisterPage(),
+        '/home': (context) => HomeScreen(),
+      },
     );
   }
 }

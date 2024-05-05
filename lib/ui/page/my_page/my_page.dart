@@ -7,7 +7,7 @@ import 'package:cook_assistant/ui/page/my_fridge/my_fridge.dart';
 import 'package:cook_assistant/widgets/dialog.dart';
 import 'package:cook_assistant/widgets/button/primary_button.dart';
 import 'package:cook_assistant/widgets/button/secondary_button.dart';
-
+import 'package:cook_assistant/ui/page/auth/login.dart'; // Ensure this import points to your actual login page
 
 class MyPage extends StatelessWidget {
   @override
@@ -35,8 +35,8 @@ class MyPage extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 10),
-                Text('Lucas Scott', style: AppTextStyles.headingH3.copyWith(color: AppColors.neutralDarkDarkest)),
-                Text('@lucasscott3', style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkLight)),
+                Text('로그인이 필요합니다', style: AppTextStyles.headingH3.copyWith(color: AppColors.neutralDarkDarkest)),
+                Text('@loginNeeded', style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkLight)),
               ],
             ),
           ),
@@ -53,6 +53,16 @@ class MyPage extends StatelessWidget {
             ),
             onTap: () => _showLogoutDialog(context),
           ),
+          ListTile(  // New login button
+            title: Text('로그인', style: AppTextStyles.bodyM.copyWith(color: AppColors.neutralDarkDarkest)),
+            trailing: SvgPicture.asset(
+              'assets/icons/arrow_right.svg',
+              width: 12,
+              height: 12,
+              color: AppColors.neutralDarkLightest,
+            ),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoginPage())),
+          ),
         ],
       ),
     );
@@ -65,7 +75,7 @@ class MyPage extends StatelessWidget {
         'assets/icons/arrow_right.svg',
         width: 12,
         height: 12,
-        color: AppColors.neutralDarkLightest, // Assuming you have this color defined
+        color: AppColors.neutralDarkLightest,
       ),
       onTap: () {
         Navigator.of(context).push(MaterialPageRoute(builder: (context) => destinationPage));
@@ -82,8 +92,7 @@ void _showLogoutDialog(BuildContext context) {
     cancelButtonText: '취소',
     confirmButtonText: '로그아웃',
     onConfirm: () {
-      // 로그아웃 처리 로직
-      // 예를 들어, 사용자 세션을 클리어하거나 로그인 페이지로 이동
+      // Add logout logic here, e.g., clear user session or navigate to login page
     },
   );
 }
