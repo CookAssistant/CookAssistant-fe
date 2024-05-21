@@ -10,6 +10,8 @@ import 'package:cook_assistant/ui/theme/color.dart';
 import 'package:cook_assistant/ui/theme/text_styles.dart';
 import 'package:cook_assistant/widgets/text_field.dart';
 import 'package:cook_assistant/widgets/popup.dart';
+import 'package:cook_assistant/widgets/dialog.dart';
+import 'package:cook_assistant/resource/config.dart'; // Ensure this import is correct
 
 class AddIngredientsPage extends StatefulWidget {
   @override
@@ -46,15 +48,11 @@ class _AddIngredientsPageState extends State<AddIngredientsPage> {
   Future<String?> annotateImage(String imagePath) async {
     try {
       String base64Image = await encodeImageToBase64(imagePath);
-      Uri uri = Uri.parse('https://vision.googleapis.com/v1/images:annotate');
-      String apiKey = dotenv.get('GOOGLE_CLOUD_VISION_API_KEY');
-      String projectId = dotenv.get('GOOGLE_CLOUD_PROJECT_ID');
+      Uri uri = Uri.parse('https://vision.googleapis.com/v1/images:annotate?key=${dotenv.get('GOOGLE_CLOUD_VISION_API_KEY')}');
       var response = await http.post(
         uri,
         headers: {
-          HttpHeaders.authorizationHeader: 'Bearer $apiKey',
           HttpHeaders.contentTypeHeader: 'application/json',
-          'x-goog-user-project': projectId,
         },
         body: jsonEncode({
           'requests': [
@@ -65,6 +63,16 @@ class _AddIngredientsPageState extends State<AddIngredientsPage> {
           ]
         }),
       );
+      print('Vision API 요청 데이터: ${jsonEncode({
+        'requests': [
+          {
+            'image': {'content': base64Image},
+            'features': [{'type': 'TEXT_DETECTION'}]
+          }
+        ]
+      })}');
+      print('Vision API 응답 상태 코드: ${response.statusCode}');
+      print('Vision API 응답 본문: ${response.body}');
       if (response.statusCode != 200) throw "Vision API 호출 실패: ${response.statusCode}";
       var jsonResponse = json.decode(response.body);
       if (jsonResponse['responses'][0]['textAnnotations'].isEmpty) throw "어노테이션을 찾을 수 없습니다.";
@@ -93,6 +101,15 @@ class _AddIngredientsPageState extends State<AddIngredientsPage> {
           ],
         }),
       );
+      print('OpenAI API 요청 데이터: ${jsonEncode({
+        'model': 'gpt-3.5-turbo',
+        'messages': [
+          {'role': 'system', 'content': '제품명과 수량 그리고 소비기한을 순서대로 나열하라. ex) 과자,2,2024-02-03  만약 소비기한이 없다면 x로 표시하라. ex) 과자,2,x  만약 두가지 이상의 종류가 나온다면 처음에 나온 한가지 종류만 출력하라. ex) 과자,2,x 와 우유,3,x 가 나온다면 과자,2,x 만 출력하라'},
+          {'role': 'user', 'content': text},
+        ],
+      })}');
+      print('OpenAI API 응답 상태 코드: ${response.statusCode}');
+      print('OpenAI API 응답 본문: ${response.body}');
       if (response.statusCode != 200) throw "OpenAI API 호출 실패: ${response.statusCode}";
       var jsonResponse = json.decode(utf8.decode(response.bodyBytes));
       var content = jsonResponse['choices'][0]['message']['content'];
@@ -132,6 +149,66 @@ class _AddIngredientsPageState extends State<AddIngredientsPage> {
     } catch (e) {
       print("이미지 인코딩 오류: $e");
       return '';
+    }
+  }
+
+  Future<void> createIngredient() async {
+    final String apiUrl = '${Config.baseUrl}/api/v1/ingredients/new';
+    final Map<String, dynamic> requestBody = {
+      "userId": 1,
+      "name": _nameController.text,
+      "quantity": _quantityController.text,
+      "expirationDate": _expirationDateController.text,
+      "imageURL": "assets/images/nut.jpg",
+      "type": "string"
+    };
+
+    print('요청 데이터: $requestBody');
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          //'Authorization': 'Bearer ${Config.apiKey}',
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      print('응답 상태 코드: ${response.statusCode}');
+      print('응답 본문: ${response.body}');
+
+      if (response.statusCode == 200) {
+        CustomAlertDialog.showCustomDialog(
+          context: context,
+          title: '등록 완료',
+          content: '식재료가 성공적으로 등록되었습니다.',
+          cancelButtonText: '',
+          confirmButtonText: '확인',
+          onConfirm: () {
+            Navigator.of(context).pop(); // 다이얼로그를 닫습니다.
+          },
+        );
+      } else {
+        CustomAlertDialog.showCustomDialog(
+          context: context,
+          title: '등록 실패',
+          content: '식재료 등록에 실패했습니다. 상태 코드: ${response.statusCode}',
+          cancelButtonText: '',
+          confirmButtonText: '확인',
+          onConfirm: () {},
+        );
+      }
+    } catch (e) {
+      print('Error occurred while creating ingredient: $e');
+      CustomAlertDialog.showCustomDialog(
+        context: context,
+        title: '등록 실패',
+        content: '식재료 등록 중 오류가 발생했습니다: $e',
+        cancelButtonText: '',
+        confirmButtonText: '확인',
+        onConfirm: () {},
+      );
     }
   }
 
@@ -231,24 +308,8 @@ class _AddIngredientsPageState extends State<AddIngredientsPage> {
             const Spacer(),
             PrimaryButton(
               text: '완료하기',
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text('등록 완료'),
-                      content: Text('등록되었습니다.'),
-                      actions: <Widget>[
-                        TextButton(
-                          child: Text('확인'),
-                          onPressed: () {
-                            Navigator.of(context).pop(); // 알림 창을 닫습니다.
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                );
+              onPressed: () async {
+                await createIngredient();
               },
             ),
           ],
