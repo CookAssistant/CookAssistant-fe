@@ -201,7 +201,7 @@ class _MakingPageState extends State<MakingPage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => RecipeDetailPage(registered: false),
+                builder: (context) => RecipeDetailPage(registered: true, userId:0, recipeId:0),
               ),
             );
           },

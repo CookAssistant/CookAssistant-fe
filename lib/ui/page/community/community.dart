@@ -128,7 +128,7 @@ class _CommunityPageState extends State<CommunityPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => RecipeDetailPage(registered: true),
+                        builder: (context) => RecipeDetailPage(registered: true, userId:0, recipeId:0),
                       ),
                     );
                   },
