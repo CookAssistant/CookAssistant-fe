@@ -2,14 +2,46 @@ import 'package:flutter/material.dart';
 import 'package:cook_assistant/widgets/button/primary_button.dart';
 import 'package:cook_assistant/ui/theme/color.dart';
 import 'package:cook_assistant/ui/theme/text_styles.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:cook_assistant/resource/config.dart';
 
 class RecipeDetailPage extends StatelessWidget {
   final bool registered;
+  final int userId;
+  final int recipeId;
 
-  RecipeDetailPage({Key? key, required this.registered}) : super(key: key);
+  RecipeDetailPage({Key? key, required this.registered, required this.userId, required this.recipeId}) : super(key: key);
 
   final String imageUrl = 'assets/images/lettuce.jpg';
   final String authorId = 'cookingmaster123';
+
+  Future<void> deleteRecipe(BuildContext context) async {
+    final response = await http.delete(
+      Uri.parse('${Config.baseUrl}/api/v1/recipes/delete'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${Config.apiKey}',
+      },
+      body: jsonEncode({
+        'userId': userId,
+        'recipeId': recipeId,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      // Navigate back or show success message
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('레시피가 성공적으로 삭제되었습니다.')),
+      );
+    } else {
+      // Handle error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('레시피 삭제에 실패했습니다. 상태 코드: ${response.statusCode}')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +59,48 @@ class RecipeDetailPage extends StatelessWidget {
             Navigator.pop(context);
           },
         ),
+        actions: [
+          PopupMenuButton<String>(
+            icon: Icon(Icons.more_vert, color: AppColors.neutralDarkDarkest),
+            onSelected: (String value) {
+              if (value == 'delete') {
+                // Confirm deletion
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('레시피 삭제'),
+                      content: Text('정말로 레시피를 삭제하시겠습니까?'),
+                      actions: [
+                        TextButton(
+                          child: Text('취소'),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        TextButton(
+                          child: Text('삭제'),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            deleteRecipe(context);
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              return [
+                PopupMenuItem<String>(
+                  value: 'delete',
+                  child: Text('삭제하기'),
+                ),
+              ];
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
