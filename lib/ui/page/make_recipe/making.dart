@@ -94,7 +94,7 @@ class _MakingPageState extends State<MakingPage> {
         'Authorization': 'Bearer ${Config.apiKey}',
       },
       body: jsonEncode({
-        'nickName': 'testUser',
+        'userId': 'testUser',
         'email': 'test@example.com',
         'password': 'password123',
         'role': 'ADMIN',
@@ -201,7 +201,7 @@ class _MakingPageState extends State<MakingPage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => RecipeDetailPage(registered: true, userId:0, recipeId:0),
+                builder: (context) => RecipeDetailPage(registered: false, userId:1, recipeId:1),
               ),
             );
           },
@@ -209,13 +209,4 @@ class _MakingPageState extends State<MakingPage> {
       ),
     );
   }
-}
-
-void navigateToMakingPage(BuildContext context, String recordedText) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => MakingPage(recordedText: recordedText),
-    ),
-  );
 }
