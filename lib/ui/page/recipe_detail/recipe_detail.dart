@@ -5,16 +5,76 @@ import 'package:cook_assistant/ui/theme/text_styles.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cook_assistant/resource/config.dart';
+import 'package:cook_assistant/widgets/dialog.dart';
 
-class RecipeDetailPage extends StatelessWidget {
+class RecipeDetailPage extends StatefulWidget {
   final bool registered;
   final int userId;
   final int recipeId;
 
   RecipeDetailPage({Key? key, required this.registered, required this.userId, required this.recipeId}) : super(key: key);
 
-  final String imageUrl = 'assets/images/lettuce.jpg';
-  final String authorId = 'cookingmaster123';
+  @override
+  _RecipeDetailPageState createState() => _RecipeDetailPageState();
+}
+
+class _RecipeDetailPageState extends State<RecipeDetailPage> {
+  late Map<String, dynamic> recipeDetails;
+  bool isLoading = true;
+  bool isError = false;
+
+  final String defaultImageUrl = 'assets/images/lettuce.jpg';
+  final String defaultAuthorId = 'cookingmaster123';
+  final String defaultRecipeName = '돼지고기 된장찌개';
+  final String defaultDietType = '락토베지테리언';
+  final String defaultDate = '2024.03.10';
+  final List<String> defaultMainIngredients = ['김치', '돼지고기', '두부'];
+  final List<String> defaultAllIngredients = ['김치', '돼지고기', '두부', '양파', '마늘', '대파', '고춧가루', '된장', '미소된장', '참기름'];
+  final List<String> defaultSteps = [
+    '1. 냄비에 참기름을 두르고 다진 대파와 마늘을 볶아 향을 낸 후 양파를 넣어 볶습니다.',
+    '2. 양파가 투명해질 때까지 볶은 후 고춧가루를 넣고 빨간 기름이 돌도록 볶아줍니다.',
+    '3. 된장과 미소된장을 넣고 잘 섞어줍니다.',
+    '4. 신김치를 넣고 볶아줍니다.',
+    '5. 물을 넣고 국물이 끓어오르면 중간 불로 줄여 끓여줍니다.',
+    '6. 국물이 끓어오르면 소금으로 간을 맞추고 남은 김치찌개 국물을 추가해 깊은 맛을 더해줍니다.',
+    '7. 김치찌개가 끓어오르면 불을 끄고 다진 대파를 고루 뿌려줍니다.',
+    '8. 그릇에 담아 고추기름을 한 두 방울 뿌려주면 완성입니다.',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchRecipeDetails();
+  }
+
+  Future<void> fetchRecipeDetails() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${Config.baseUrl}/api/v1/recipes/${widget.recipeId}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${Config.apiKey}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          recipeDetails = json.decode(response.body);
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isError = true;
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        isError = true;
+        isLoading = false;
+      });
+    }
+  }
 
   Future<void> deleteRecipe(BuildContext context) async {
     final response = await http.delete(
@@ -24,19 +84,17 @@ class RecipeDetailPage extends StatelessWidget {
         'Authorization': 'Bearer ${Config.apiKey}',
       },
       body: jsonEncode({
-        'userId': userId,
-        'recipeId': recipeId,
+        'userId': widget.userId,
+        'recipeId': widget.recipeId,
       }),
     );
 
     if (response.statusCode == 200) {
-      // Navigate back or show success message
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('레시피가 성공적으로 삭제되었습니다.')),
       );
     } else {
-      // Handle error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('레시피 삭제에 실패했습니다. 상태 코드: ${response.statusCode}')),
       );
@@ -64,29 +122,15 @@ class RecipeDetailPage extends StatelessWidget {
             icon: Icon(Icons.more_vert, color: AppColors.neutralDarkDarkest),
             onSelected: (String value) {
               if (value == 'delete') {
-                // Confirm deletion
-                showDialog(
+                CustomAlertDialog.showCustomDialog(
                   context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text('레시피 삭제'),
-                      content: Text('정말로 레시피를 삭제하시겠습니까?'),
-                      actions: [
-                        TextButton(
-                          child: Text('취소'),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                        TextButton(
-                          child: Text('삭제'),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            deleteRecipe(context);
-                          },
-                        ),
-                      ],
-                    );
+                  title: '레시피 삭제',
+                  content: '정말로 레시피를 삭제하시겠습니까?',
+                  cancelButtonText: '취소',
+                  confirmButtonText: '삭제',
+                  onConfirm: () {
+                    Navigator.of(context).pop();
+                    deleteRecipe(context);
                   },
                 );
               }
@@ -95,20 +139,28 @@ class RecipeDetailPage extends StatelessWidget {
               return [
                 PopupMenuItem<String>(
                   value: 'delete',
-                  child: Text('삭제하기'),
+                  child: Container(
+                    color: Colors.white, // Set background color to white
+                    child: Text(
+                      '삭제하기',
+                      style: AppTextStyles.bodyM.copyWith(color: AppColors.neutralDarkDarkest),
+                    ),
+                  ),
                 ),
               ];
             },
           ),
         ],
       ),
-      body: Padding(
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Image.asset(
-              imageUrl,
+              isError || recipeDetails['imageUrl'] == null ? defaultImageUrl : recipeDetails['imageUrl'],
               width: double.infinity,
               height: 300,
               fit: BoxFit.cover,
@@ -118,7 +170,7 @@ class RecipeDetailPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '돼지고기 된장찌개',
+                  isError || recipeDetails['recipeName'] == null ? defaultRecipeName : recipeDetails['recipeName'],
                   style: AppTextStyles.headingH2.copyWith(color: AppColors.neutralDarkDarkest),
                 ),
                 IconButton(
@@ -131,7 +183,7 @@ class RecipeDetailPage extends StatelessWidget {
             ),
             const SizedBox(height: 8.0),
             Text(
-              '락토베지테리언',
+              isError || recipeDetails['dietType'] == null ? defaultDietType : recipeDetails['dietType'],
               style: AppTextStyles.bodyL.copyWith(color: AppColors.neutralDarkDarkest),
             ),
             const SizedBox(height: 16.0),
@@ -139,11 +191,11 @@ class RecipeDetailPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  authorId,
+                  isError || recipeDetails['authorId'] == null ? defaultAuthorId : recipeDetails['authorId'],
                   style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkLight),
                 ),
                 Text(
-                  '2024.03.10',
+                  isError || recipeDetails['date'] == null ? defaultDate : recipeDetails['date'],
                   style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkLight),
                 ),
               ],
@@ -154,7 +206,9 @@ class RecipeDetailPage extends StatelessWidget {
               style: AppTextStyles.headingH5.copyWith(color: AppColors.neutralDarkDarkest),
             ),
             Text(
-              '김치, 돼지고기, 두부',
+              isError || recipeDetails['mainIngredients'] == null
+                  ? defaultMainIngredients.join(', ')
+                  : (recipeDetails['mainIngredients'] as List<dynamic>).join(', '),
               style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkDarkest),
             ),
             const SizedBox(height: 16.0),
@@ -163,65 +217,25 @@ class RecipeDetailPage extends StatelessWidget {
               style: AppTextStyles.headingH5.copyWith(color: AppColors.neutralDarkDarkest),
             ),
             Text(
-              '김치, 돼지고기, 두부, 양파, 마늘, 대파, 고춧가루, 된장, 미소된장, 참기름',
+              isError || recipeDetails['allIngredients'] == null
+                  ? defaultAllIngredients.join(', ')
+                  : (recipeDetails['allIngredients'] as List<dynamic>).join(', '),
               style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkDarkest),
             ),
             const SizedBox(height: 32.0),
             Expanded(
               child: ListView(
-                children: [
-                  ListTile(
+                children: (isError || recipeDetails['steps'] == null ? defaultSteps : (recipeDetails['steps'] as List<dynamic>)).map<Widget>((step) {
+                  return ListTile(
                     title: Text(
-                      '1. 냄비에 참기름을 두르고 다진 대파와 마늘을 볶아 향을 낸 후 양파를 넣어 볶습니다.',
+                      step,
                       style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkDarkest),
                     ),
-                  ),
-                  ListTile(
-                    title: Text(
-                      '2. 양파가 투명해질 때까지 볶은 후 고춧가루를 넣고 빨간 기름이 돌도록 볶아줍니다.',
-                      style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkDarkest),
-                    ),
-                  ),
-                  ListTile(
-                    title: Text(
-                      '3. 된장과 미소된장을 넣고 잘 섞어줍니다.',
-                      style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkDarkest),
-                    ),
-                  ),
-                  ListTile(
-                    title: Text(
-                      '4. 신김치를 넣고 볶아줍니다.',
-                      style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkDarkest),
-                    ),
-                  ),
-                  ListTile(
-                    title: Text(
-                      '5. 물을 넣고 국물이 끓어오르면 중간 불로 줄여 끓여줍니다.',
-                      style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkDarkest),
-                    ),
-                  ),
-                  ListTile(
-                    title: Text(
-                      '6. 국물이 끓어오르면 소금으로 간을 맞추고 남은 김치찌개 국물을 추가해 깊은 맛을 더해줍니다.',
-                      style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkDarkest),
-                    ),
-                  ),
-                  ListTile(
-                    title: Text(
-                      '7. 김치찌개가 끓어오르면 불을 끄고 다진 대파를 고루 뿌려줍니다.',
-                      style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkDarkest),
-                    ),
-                  ),
-                  ListTile(
-                    title: Text(
-                      '8. 그릇에 담아 고추기름을 한 두 방울 뿌려주면 완성입니다.',
-                      style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkDarkest),
-                    ),
-                  ),
-                ],
+                  );
+                }).toList(),
               ),
             ),
-            if (!registered)
+            if (!widget.registered)
               PrimaryButton(
                 text: '커뮤니티에 등록하기',
                 onPressed: () {
