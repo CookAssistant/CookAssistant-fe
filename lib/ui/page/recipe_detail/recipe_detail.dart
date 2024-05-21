@@ -22,6 +22,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
   late Map<String, dynamic> recipeDetails;
   bool isLoading = true;
   bool isError = false;
+  bool isLiked = false;
 
   final String defaultImageUrl = 'assets/images/lettuce.jpg';
   final String defaultAuthorId = 'cookingmaster123';
@@ -61,6 +62,8 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
         setState(() {
           recipeDetails = json.decode(response.body);
           isLoading = false;
+          // Check if the recipe is liked by the user (this should be determined based on your app's logic)
+          isLiked = recipeDetails['isLikedByUser'] ?? false;
         });
       } else {
         setState(() {
@@ -73,6 +76,60 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
         isError = true;
         isLoading = false;
       });
+    }
+  }
+
+  Future<void> likeRecipe() async {
+    final response = await http.post(
+      Uri.parse('${Config.baseUrl}/api/v1/likes/new'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${Config.apiKey}',
+      },
+      body: jsonEncode({
+        'userId': widget.userId,
+        'recipeId': widget.recipeId,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        isLiked = true;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('레시피를 좋아요 했습니다.')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('좋아요에 실패했습니다. 상태 코드: ${response.statusCode}')),
+      );
+    }
+  }
+
+  Future<void> unlikeRecipe() async {
+    final response = await http.delete(
+      Uri.parse('${Config.baseUrl}/api/v1/likes/delete'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${Config.apiKey}',
+      },
+      body: jsonEncode({
+        'userId': widget.userId,
+        'recipeId': widget.recipeId,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        isLiked = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('레시피 좋아요를 취소했습니다.')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('좋아요 취소에 실패했습니다. 상태 코드: ${response.statusCode}')),
+      );
     }
   }
 
@@ -174,9 +231,16 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                   style: AppTextStyles.headingH2.copyWith(color: AppColors.neutralDarkDarkest),
                 ),
                 IconButton(
-                  icon: Icon(Icons.favorite_border, color: AppColors.neutralDarkDarkest),
+                  icon: Icon(
+                    isLiked ? Icons.favorite : Icons.favorite_border,
+                    color: isLiked ? Colors.red : AppColors.neutralDarkDarkest,
+                  ),
                   onPressed: () {
-                    // TODO: Add favorite action
+                    if (isLiked) {
+                      unlikeRecipe();
+                    } else {
+                      likeRecipe();
+                    }
                   },
                 ),
               ],

@@ -42,8 +42,15 @@ class _CommunityPageState extends State<CommunityPage> {
   }
 
   Future<void> fetchRecipes() async {
+    String endpoint = '${Config.baseUrl}/api/v1/recipes/all';
+    if (_filterCriteria == '나의 레시피') {
+      endpoint = '${Config.baseUrl}/api/v1/recipes/all/{userId}';
+    } else if (_filterCriteria == '좋아요한 레시피') {
+      endpoint = '${Config.baseUrl}/api/v1/recipes/likes/{userId}';
+    }
+
     final response = await http.get(
-      Uri.parse('${Config.baseUrl}/api/v1/recipes/all'),
+      Uri.parse(endpoint),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ${Config.apiKey}',
@@ -51,15 +58,22 @@ class _CommunityPageState extends State<CommunityPage> {
     );
 
     if (response.statusCode == 200) {
+      List<dynamic> recipes = json.decode(response.body);
+
+      if (_sortingCriteria == '최신순') {
+        recipes.sort((a, b) => b['createdAt'].compareTo(a['createdAt']));
+      } else if (_sortingCriteria == '좋아요순') {
+        recipes.sort((a, b) => b['likes'].compareTo(a['likes']));
+      }
+
       setState(() {
-        _recipes = json.decode(response.body);
+        _recipes = recipes;
         _isLoading = false;
       });
     } else {
       setState(() {
         _isLoading = false;
       });
-      // Handle the error appropriately in your application
       print('Failed to load recipes: ${response.statusCode}');
     }
   }
@@ -90,7 +104,8 @@ class _CommunityPageState extends State<CommunityPage> {
                     onChanged: (newValue) {
                       setState(() {
                         _filterCriteria = newValue!;
-                        // 필터 변경 시 로직 구현
+                        _isLoading = true;
+                        fetchRecipes();
                       });
                     },
                   ),
@@ -100,7 +115,8 @@ class _CommunityPageState extends State<CommunityPage> {
                     onChanged: (newValue) {
                       setState(() {
                         _sortingCriteria = newValue!;
-                        // 정렬 변경 시 로직 구현
+                        _isLoading = true;
+                        fetchRecipes();
                       });
                     },
                   ),
@@ -128,7 +144,11 @@ class _CommunityPageState extends State<CommunityPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => RecipeDetailPage(registered: true, userId:0, recipeId:0),
+                        builder: (context) => RecipeDetailPage(
+                          registered: true,
+                          userId: recipe['userId'], // Adjust with actual userId
+                          recipeId: recipe['recipeId'], // Adjust with actual recipeId
+                        ),
                       ),
                     );
                   },
