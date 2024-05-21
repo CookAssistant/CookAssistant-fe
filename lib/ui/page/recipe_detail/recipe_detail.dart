@@ -147,13 +147,95 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
     );
 
     if (response.statusCode == 200) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('레시피가 성공적으로 삭제되었습니다.')),
+      CustomAlertDialog.showCustomDialog(
+        context: context,
+        title: '삭제 성공',
+        content: '레시피가 성공적으로 삭제되었습니다.',
+        cancelButtonText: '',
+        confirmButtonText: '확인',
+        onConfirm: () {
+          Navigator.of(context).pop();
+        },
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('레시피 삭제에 실패했습니다. 상태 코드: ${response.statusCode}')),
+      CustomAlertDialog.showCustomDialog(
+        context: context,
+        title: '삭제 실패',
+        content: '레시피 삭제에 실패했습니다. 상태 코드: ${response.statusCode}',
+        cancelButtonText: '',
+        confirmButtonText: '확인',
+        onConfirm: () {},
+      );
+    }
+  }
+
+  Future<void> registerRecipe() async {
+    String ingredients = (isError || recipeDetails['allIngredients'] == null
+        ? defaultAllIngredients
+        : recipeDetails['allIngredients']).join(', ');
+
+    String steps = (isError || recipeDetails['steps'] == null
+        ? defaultSteps
+        : recipeDetails['steps']).join('\n');
+
+    final String content = 'Ingredients:\n$ingredients\n\nSteps:\n$steps';
+
+    final Map<String, dynamic> requestData = {
+      'userId': widget.userId,
+      'name': isError || recipeDetails['recipeName'] == null ? 'Unknown' : recipeDetails['recipeName'],
+      'content': content,
+      'imageURL': isError || recipeDetails['imageUrl'] == null ? defaultImageUrl : recipeDetails['imageUrl'],
+      'createdAt': DateTime.now().toIso8601String(),
+    };
+
+    // 요청 데이터 로그
+    print('Request Data: $requestData');
+
+    try {
+      final response = await http.post(
+        Uri.parse('${Config.baseUrl}/api/v1/recipes/new'),
+        headers: {
+          'Content-Type': 'application/json',
+          //'Authorization': 'Bearer ${Config.apiKey}',
+        },
+        body: jsonEncode(requestData),
+      );
+
+      // 응답 로그
+      print('Response Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        CustomAlertDialog.showCustomDialog(
+          context: context,
+          title: '등록 성공',
+          content: '레시피가 커뮤니티에 등록되었습니다.',
+          cancelButtonText: '',
+          confirmButtonText: '확인',
+          onConfirm: () {
+            Navigator.of(context).pop();
+          },
+        );
+      } else {
+        CustomAlertDialog.showCustomDialog(
+          context: context,
+          title: '등록 실패',
+          content: '레시피 등록에 실패했습니다. 상태 코드: ${response.statusCode}',
+          cancelButtonText: '',
+          confirmButtonText: '확인',
+          onConfirm: () {},
+        );
+      }
+    } catch (e) {
+      // 예외 로그
+      print('Exception: $e');
+      CustomAlertDialog.showCustomDialog(
+        context: context,
+        title: '등록 실패',
+        content: '레시피 등록에 실패했습니다. 예외: $e',
+        cancelButtonText: '',
+        confirmButtonText: '확인',
+        onConfirm: () {},
       );
     }
   }
@@ -302,9 +384,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
             if (!widget.registered)
               PrimaryButton(
                 text: '커뮤니티에 등록하기',
-                onPressed: () {
-                  // TODO: Implement registration action
-                },
+                onPressed: registerRecipe,
               ),
           ],
         ),
