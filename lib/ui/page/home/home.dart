@@ -7,8 +7,9 @@ import 'package:dots_indicator/dots_indicator.dart';
 import 'package:cook_assistant/widgets/card.dart';
 import 'package:cook_assistant/widgets/default_card.dart';
 import 'package:cook_assistant/ui/page/recipe_detail/recipe_detail.dart';
-
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:cook_assistant/resource/config.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(int)? onNavigateToPage;
@@ -22,6 +23,9 @@ class _HomeScreenState extends State<HomeScreen> {
   final _pageController = PageController(viewportFraction: 1);
   double _currentPage = 0;
   final _bannerImages = ['assets/banners/banner1.webp', 'assets/banners/banner2.webp', 'assets/banners/banner3.webp'];
+  List<dynamic> _recipes = [];
+  bool _isLoading = true;
+  bool _isError = false;
 
   @override
   void initState() {
@@ -33,6 +37,38 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       }
     });
+    fetchRecipes();
+  }
+
+  Future<void> fetchRecipes() async {
+    try {
+      print("recipe load started");
+      final response = await http.get(
+        Uri.parse('${Config.baseUrl}/api/v1/recipes/all'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${Config.apiKey}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        print("recipes loaded");
+        setState(() {
+          _recipes = json.decode(response.body).take(5).toList();
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _isError = true;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isError = true;
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -46,8 +82,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-            'CookAssistant',
-            style: AppTextStyles.headingH4.copyWith(color: AppColors.neutralDarkDarkest),
+          'CookAssistant',
+          style: AppTextStyles.headingH4.copyWith(color: AppColors.neutralDarkDarkest),
         ),
       ),
       body: SingleChildScrollView(
@@ -65,7 +101,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 physics: ClampingScrollPhysics(),
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: DotsIndicator(
@@ -76,24 +111,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-
             SizedBox(height: 32),
-
             _buildSectionTitle(context, '나의 냉장고', MyFridgePage()),
             _buildHorizontalListForFridge(),
             SizedBox(height: 32),
-
             _buildSectionTitle(context, '유저가 만든 레시피', CommunityPage(pageTitle: '커뮤니티'),
                 onTap: () {
                   widget.onNavigateToPage?.call(1);
-            }),
-            _buildHorizontalListForRecipe(),
+                }),
+            _isLoading
+                ? Center(child: CircularProgressIndicator())
+                : _recipes.isEmpty
+                ? _buildHorizontalListForRecipe()
+                : _buildHorizontalListForRecipeFromAPI(),
             SizedBox(height: 32),
-
           ],
         ),
       ),
-
     );
   }
 
@@ -104,31 +138,29 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           Text(
-              title,
-              style: AppTextStyles.headingH4.copyWith(color: AppColors.neutralDarkDarkest),
+            title,
+            style: AppTextStyles.headingH4.copyWith(color: AppColors.neutralDarkDarkest),
           ),
           GestureDetector(
-              onTap: onTap ?? () {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => destinationPage));
-              },
-              child: Text(
-                '더보기',
-                style: AppTextStyles.actionM.copyWith(color: AppColors.highlightDarkest),
-
-              ),
+            onTap: onTap ?? () {
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => destinationPage));
+            },
+            child: Text(
+              '더보기',
+              style: AppTextStyles.actionM.copyWith(color: AppColors.highlightDarkest),
+            ),
           ),
         ],
       ),
     );
   }
 
-
   Widget _buildHorizontalListForRecipe() {
     return Container(
       height: 189,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: 5+2,
+        itemCount: 5 + 2,
         itemBuilder: (context, index) {
           if (index == 0 || index == 6) {
             return SizedBox(width: 16);
@@ -138,13 +170,13 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => RecipeDetailPage(registered: true, userId:0, recipeId:0),
+                  builder: (context) => RecipeDetailPage(registered: true, userId: 0, recipeId: 0),
                 ),
               );
             },
             child: SizedBox(
-              width: 189,  // 카드의 너비 지정
-              height: 189,  // 카드의 높이 지정
+              width: 189, // 카드의 너비 지정
+              height: 189, // 카드의 높이 지정
               child: CustomCard(
                 title: '임시타이틀',
                 subtitle: '부제목',
@@ -158,40 +190,69 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
 
-Widget _buildHorizontalListForFridge() {
-  return Container(
-    height: 189,
-    child: ListView.separated(
-      scrollDirection: Axis.horizontal,
-      itemCount: 5+2,
-      itemBuilder: (context, index) {
-        if (index == 0 || index == 6) {
-          return SizedBox(width: 16);
-        }
-        return GestureDetector(/*
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => RecipeDetailPage(),
+  Widget _buildHorizontalListForRecipeFromAPI() {
+    return Container(
+      height: 189,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: _recipes.length + 2,
+        itemBuilder: (context, index) {
+          if (index == 0 || index == _recipes.length + 1) {
+            return SizedBox(width: 16);
+          }
+          var recipe = _recipes[index - 1];
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => RecipeDetailPage(registered: true, userId: 0, recipeId: recipe['id']),
+                ),
+              );
+            },
+            child: SizedBox(
+              width: 189, // 카드의 너비 지정
+              height: 189, // 카드의 높이 지정
+              child: CustomCard(
+                title: recipe['title'] ?? '제목 없음',
+                subtitle: recipe['description'] ?? '설명 없음',
+                imageUrl: recipe['imageUrl'] ?? 'assets/images/red_onion.jpg',
               ),
-            );
-          },*/
-          child: SizedBox(
-            width: 189,  // 카드의 너비 지정
-            height: 189,  // 카드의 높이 지정
-            child: CustomCard(
-              title: '소비기한 : 2024.04.15',
-              subtitle: '스팸 2캔',
-              imageUrl: 'assets/images/mushroom.jpg',
             ),
-          ),
-        );
-      },
-      separatorBuilder: (context, index) => SizedBox(width: 8),
-      physics: ClampingScrollPhysics(),
-    ),
-  );
+          );
+        },
+        separatorBuilder: (context, index) => SizedBox(width: 8),
+        physics: ClampingScrollPhysics(),
+      ),
+    );
+  }
+
+  Widget _buildHorizontalListForFridge() {
+    return Container(
+      height: 189,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: 5 + 2,
+        itemBuilder: (context, index) {
+          if (index == 0 || index == 6) {
+            return SizedBox(width: 16);
+          }
+          return GestureDetector(
+            child: SizedBox(
+              width: 189, // 카드의 너비 지정
+              height: 189, // 카드의 높이 지정
+              child: CustomCard(
+                title: '소비기한 : 2024.04.15',
+                subtitle: '스팸 2캔',
+                imageUrl: 'assets/images/mushroom.jpg',
+              ),
+            ),
+          );
+        },
+        separatorBuilder: (context, index) => SizedBox(width: 8),
+        physics: ClampingScrollPhysics(),
+      ),
+    );
+  }
 }
