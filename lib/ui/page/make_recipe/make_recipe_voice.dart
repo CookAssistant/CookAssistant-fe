@@ -19,7 +19,7 @@ class _RecordScreenState extends State<MakeRecipeVoicePage> {
   bool isImageGenerationEnabled = false;
   stt.SpeechToText _speechToText = stt.SpeechToText();
   bool _isListening = false;
-  String _text = '';
+  String _text = '나는 락토오보베지테리언이고 돼지고기 김치찌개 레시피를 알려줘. 템페를 쓸거야.';
 
   @override
   void initState() {

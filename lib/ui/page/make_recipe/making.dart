@@ -5,9 +5,8 @@ import 'package:cook_assistant/widgets/button/primary_button.dart';
 import 'package:cook_assistant/widgets/text_field.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:cook_assistant/resource/config.dart';
-
+import 'package:cook_assistant/ui/page/recipe_detail/recipe_detail.dart'; // Ensure this import path is correct
 
 class MakingPage extends StatefulWidget {
   final String recordedText;
@@ -31,6 +30,7 @@ class _MakingPageState extends State<MakingPage> {
 
   String _response = 'string init';
   String _responseJsonString = 'json init';
+  String _recipeCreateResponse = '레시피 생성 응답 대기 중';
 
   @override
   void initState() {
@@ -49,7 +49,6 @@ class _MakingPageState extends State<MakingPage> {
   }
 
   Future<void> extractKeywords(String text) async {
-
     final response = await http.post(
       Uri.parse('https://api.openai.com/v1/chat/completions'),
       headers: {
@@ -77,6 +76,8 @@ class _MakingPageState extends State<MakingPage> {
           _recipeController.text = contentJson['recipeName'] ?? "정보 없음";
           _ingredientDateController.text = contentJson['ingredients'] ?? "정보 없음";
         });
+
+        await createRecipe(contentJson);
       }
     } else {
       setState(() {
@@ -84,6 +85,36 @@ class _MakingPageState extends State<MakingPage> {
       });
     }
   }
+
+  Future<void> createRecipe(Map<String, dynamic> recipeData) async {
+    final newRecipeResponse = await http.post(
+      Uri.parse('${Config.baseUrl}/api/v1/recipes/new'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${Config.apiKey}',
+      },
+      body: jsonEncode({
+        'nickName': 'testUser',
+        'email': 'test@example.com',
+        'password': 'password123',
+        'role': 'ADMIN',
+        //'recipeName': recipeData['recipeName'],
+        //'userDiet': recipeData['userDiet'],
+        //'ingredients': recipeData['ingredients'],
+      }),
+    );
+
+    if (newRecipeResponse.statusCode == 200) {
+      setState(() {
+        _recipeCreateResponse = '레시피가 성공적으로 생성되었습니다: ${newRecipeResponse.body}';
+      });
+    } else {
+      setState(() {
+        _recipeCreateResponse = '레시피 생성에 실패했습니다: 상태 코드 ${newRecipeResponse.statusCode} - 응답 본문: ${newRecipeResponse.body}';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -103,7 +134,6 @@ class _MakingPageState extends State<MakingPage> {
               style: AppTextStyles.headingH1.copyWith(color: AppColors.neutralDarkDarkest),
             ),
             SizedBox(height: 16.0),
-
             Text(
               widget.recordedText,
               style: AppTextStyles.bodyL.copyWith(color: AppColors.neutralDarkDarkest),
@@ -145,8 +175,17 @@ class _MakingPageState extends State<MakingPage> {
               hint: ' ',
             ),
             SizedBox(height: 32.0),
+            Text(
+              '레시피 생성 응답:',
+              style: AppTextStyles.bodyL.copyWith(color: AppColors.neutralDarkDarkest),
+            ),
+            Text(
+              _recipeCreateResponse,
+              style: AppTextStyles.bodyL.copyWith(color: AppColors.neutralDarkDarkest),
+            ),
+            SizedBox(height: 32.0),
             PrimaryButton(
-              text: '레시피 제안 받기',
+              text: '레시피 정보 불러오기',
               onPressed: () {
                 extractKeywords(widget.recordedText);
               },
@@ -158,7 +197,14 @@ class _MakingPageState extends State<MakingPage> {
         padding: const EdgeInsets.all(16.0),
         child: PrimaryButton(
           text: '완료하기',
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => RecipeDetailPage(registered: true, userId:0, recipeId:0),
+              ),
+            );
+          },
         ),
       ),
     );

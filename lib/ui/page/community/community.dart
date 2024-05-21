@@ -5,7 +5,9 @@ import 'package:cook_assistant/ui/page/recipe_detail/recipe_detail.dart';
 import 'package:cook_assistant/widgets/card.dart';
 import 'package:cook_assistant/ui/page/community/filter_dropdown.dart';
 import 'package:cook_assistant/ui/page/community/sort_dropdown.dart';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:cook_assistant/resource/config.dart';
 
 class CommunityPage extends StatefulWidget {
   final String pageTitle;
@@ -28,11 +30,38 @@ class _CommunityPageState extends State<CommunityPage> {
   late String _filterCriteria;
   List<String> _filterOptions = ['모두', '나의 레시피', '좋아요한 레시피', '락토베지테리언', 'Gluten-Free'];
 
+  List<dynamic> _recipes = [];
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
     _sortingCriteria = '최신순';
     _filterCriteria = widget.initialFilterCriteria;
+    fetchRecipes();
+  }
+
+  Future<void> fetchRecipes() async {
+    final response = await http.get(
+      Uri.parse('${Config.baseUrl}/api/v1/recipes/all'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${Config.apiKey}',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        _recipes = json.decode(response.body);
+        _isLoading = false;
+      });
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+      // Handle the error appropriately in your application
+      print('Failed to load recipes: ${response.statusCode}');
+    }
   }
 
   @override
@@ -45,7 +74,9 @@ class _CommunityPageState extends State<CommunityPage> {
         ),
         elevation: 0,
       ),
-      body: SingleChildScrollView(
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
         child: Column(
           children: [
@@ -85,18 +116,19 @@ class _CommunityPageState extends State<CommunityPage> {
                 childAspectRatio: MediaQuery.of(context).size.width /
                     (MediaQuery.of(context).size.height / 2),
               ),
-              itemCount: 17,
+              itemCount: _recipes.length,
               itemBuilder: (BuildContext context, int index) {
-                String title = '락토베지테리언${index + 1}';
-                String subtitle = '돼지고기 김치찌개${index + 1}';
-                String imageUrl = 'assets/images/mushroom.jpg';
+                var recipe = _recipes[index];
+                String title = recipe['title'] ?? '제목 없음';
+                String subtitle = recipe['description'] ?? '설명 없음';
+                String imageUrl = recipe['imageUrl'] ?? 'assets/images/mushroom.jpg';
 
                 return GestureDetector(
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => RecipeDetailPage(),
+                        builder: (context) => RecipeDetailPage(registered: true, userId:0, recipeId:0),
                       ),
                     );
                   },
