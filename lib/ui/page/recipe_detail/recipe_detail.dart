@@ -32,14 +32,14 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
   final List<String> defaultMainIngredients = ['김치', '돼지고기', '두부'];
   final List<String> defaultAllIngredients = ['김치', '돼지고기', '두부', '양파', '마늘', '대파', '고춧가루', '된장', '미소된장', '참기름'];
   final List<String> defaultSteps = [
-    '1. 냄비에 참기름을 두르고 다진 대파와 마늘을 볶아 향을 낸 후 양파를 넣어 볶습니다.',
+    '1. 냄비에 들기름을 두르고 다진 대파와 마늘을 볶아 향을 낸 후 양파를 넣어 볶습니다.',
     '2. 양파가 투명해질 때까지 볶은 후 고춧가루를 넣고 빨간 기름이 돌도록 볶아줍니다.',
-    '3. 된장과 미소된장을 넣고 잘 섞어줍니다.',
+    '3. 된장을 넣고 잘 섞어줍니다.',
     '4. 신김치를 넣고 볶아줍니다.',
     '5. 물을 넣고 국물이 끓어오르면 중간 불로 줄여 끓여줍니다.',
     '6. 국물이 끓어오르면 소금으로 간을 맞추고 남은 김치찌개 국물을 추가해 깊은 맛을 더해줍니다.',
     '7. 김치찌개가 끓어오르면 불을 끄고 다진 대파를 고루 뿌려줍니다.',
-    '8. 그릇에 담아 고추기름을 한 두 방울 뿌려주면 완성입니다.',
+    '8. 그릇에 담으면 완성입니다.',
   ];
 
   @override
@@ -58,11 +58,10 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
         },
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 201) {
         setState(() {
           recipeDetails = json.decode(response.body);
           isLoading = false;
-          // Check if the recipe is liked by the user (this should be determined based on your app's logic)
           isLiked = recipeDetails['isLikedByUser'] ?? false;
         });
       } else {
@@ -92,16 +91,28 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
       }),
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 201) {
       setState(() {
         isLiked = true;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('레시피를 좋아요 했습니다.')),
+      CustomAlertDialog.showCustomDialog(
+        context: context,
+        title: '레시피 좋아요',
+        content: '레시피에 좋아요를 눌렀습니다.',
+        cancelButtonText: '',
+        confirmButtonText: '확인',
+        onConfirm: () {
+        },
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('좋아요에 실패했습니다. 상태 코드: ${response.statusCode}')),
+      CustomAlertDialog.showCustomDialog(
+        context: context,
+        title: '좋아요 실패',
+        content: '레시피 좋아요에 실패하였습니다. 상태 코드: ${response.statusCode}',
+        cancelButtonText: '',
+        confirmButtonText: '확인',
+        onConfirm: () {
+        },
       );
     }
   }
@@ -119,16 +130,28 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
       }),
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 201) {
       setState(() {
         isLiked = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('레시피 좋아요를 취소했습니다.')),
+      CustomAlertDialog.showCustomDialog(
+        context: context,
+        title: '좋아요 취소',
+        content: '레시피 좋아요를 취소하였습니다.',
+        cancelButtonText: '',
+        confirmButtonText: '확인',
+        onConfirm: () {
+        },
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('좋아요 취소에 실패했습니다. 상태 코드: ${response.statusCode}')),
+      CustomAlertDialog.showCustomDialog(
+        context: context,
+        title: '좋아요 취소 실패',
+        content: '레시피 좋아요 취소에 실패하였습니다. 상태 코드: ${response.statusCode}',
+        cancelButtonText: '',
+        confirmButtonText: '확인',
+        onConfirm: () {
+        },
       );
     }
   }
@@ -146,7 +169,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
       }),
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 201) {
       CustomAlertDialog.showCustomDialog(
         context: context,
         title: '삭제 성공',
@@ -182,13 +205,12 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
 
     final Map<String, dynamic> requestData = {
       'userId': widget.userId,
-      'name': isError || recipeDetails['recipeName'] == null ? 'Unknown' : recipeDetails['recipeName'],
+      'name': isError || recipeDetails['recipeName'] == null ? 'TmpRecipeName' : recipeDetails['recipeName'],
       'content': content,
       'imageURL': isError || recipeDetails['imageUrl'] == null ? defaultImageUrl : recipeDetails['imageUrl'],
       'createdAt': DateTime.now().toIso8601String(),
     };
 
-    // 요청 데이터 로그
     print('Request Data: $requestData');
 
     try {
@@ -196,16 +218,18 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
         Uri.parse('${Config.baseUrl}/api/v1/recipes/new'),
         headers: {
           'Content-Type': 'application/json',
-          //'Authorization': 'Bearer ${Config.apiKey}',
+          'Authorization': 'Bearer ${Config.apiKey}',
         },
         body: jsonEncode(requestData),
       );
 
-      // 응답 로그
-      print('Response Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body}');
+      var decodedResponse = utf8.decode(response.bodyBytes);
+      var jsonResponse = jsonDecode(decodedResponse);
 
-      if (response.statusCode == 200) {
+      print('Response Status Code: ${response.statusCode}');
+      print('Response Body: $decodedResponse');
+
+      if (response.statusCode == 201) {
         CustomAlertDialog.showCustomDialog(
           context: context,
           title: '등록 성공',
@@ -220,14 +244,14 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
         CustomAlertDialog.showCustomDialog(
           context: context,
           title: '등록 실패',
-          content: '레시피 등록에 실패했습니다. 상태 코드: ${response.statusCode}',
+          content: '레시피 등록에 실패했습니다. 상태 코드: ${jsonResponse.statusCode}',
           cancelButtonText: '',
           confirmButtonText: '확인',
           onConfirm: () {},
         );
       }
     } catch (e) {
-      // 예외 로그
+      // Log the exception
       print('Exception: $e');
       CustomAlertDialog.showCustomDialog(
         context: context,
