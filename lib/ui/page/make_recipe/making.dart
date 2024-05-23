@@ -94,9 +94,9 @@ class _MakingPageState extends State<MakingPage> {
         'Authorization': 'Bearer ${Config.apiKey}',
       },
       body: jsonEncode({
-        'userId': 'testUser',
-        'email': 'test@example.com',
-        'password': 'password123',
+        'userId': 16,
+        'email': 'aaa@aaa.com',
+        'password': 'aaa',
         'role': 'ADMIN',
         //'recipeName': recipeData['recipeName'],
         //'userDiet': recipeData['userDiet'],
@@ -104,7 +104,7 @@ class _MakingPageState extends State<MakingPage> {
       }),
     );
 
-    if (newRecipeResponse.statusCode == 200) {
+    if (newRecipeResponse.statusCode == 201) {
       setState(() {
         _recipeCreateResponse = '레시피가 성공적으로 생성되었습니다: ${newRecipeResponse.body}';
       });
@@ -201,7 +201,7 @@ class _MakingPageState extends State<MakingPage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => RecipeDetailPage(registered: false, userId:1, recipeId:1),
+                builder: (context) => RecipeDetailPage(registered: false, userId:16, recipeId:1),
               ),
             );
           },
