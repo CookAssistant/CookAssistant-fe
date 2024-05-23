@@ -54,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (response.statusCode == 200) {
         print("recipes loaded");
         setState(() {
-          _recipes = json.decode(response.body).take(5).toList();
+          _recipes = json.decode(response.body);
           _isLoading = false;
         });
       } else {
@@ -115,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildSectionTitle(context, '나의 냉장고', MyFridgePage()),
             _buildHorizontalListForFridge(),
             SizedBox(height: 32),
-            _buildSectionTitle(context, '유저가 만든 레시피', CommunityPage(pageTitle: '커뮤니티'),
+            _buildSectionTitle(context, '유저들이 만든 레시피', CommunityPage(pageTitle: '커뮤니티'),
                 onTap: () {
                   widget.onNavigateToPage?.call(1);
                 }),
@@ -192,32 +192,33 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHorizontalListForRecipeFromAPI() {
+    final latestRecipes = _recipes.reversed.take(5).toList();
     return Container(
       height: 189,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: _recipes.length + 2,
+        itemCount: latestRecipes.length + 2,
         itemBuilder: (context, index) {
-          if (index == 0 || index == _recipes.length + 1) {
+          if (index == 0 || index == latestRecipes.length + 1) {
             return SizedBox(width: 16);
           }
-          var recipe = _recipes[index - 1];
+          var recipe = latestRecipes[index - 1];
           return GestureDetector(
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => RecipeDetailPage(registered: true, userId: 0, recipeId: recipe['id']),
+                  builder: (context) => RecipeDetailPage(registered: true, userId: 16, recipeId: recipe['id']),
                 ),
               );
             },
             child: SizedBox(
-              width: 189, // 카드의 너비 지정
-              height: 189, // 카드의 높이 지정
+              width: 189,
+              height: 189,
               child: CustomCard(
-                title: recipe['title'] ?? '제목 없음',
-                subtitle: recipe['description'] ?? '설명 없음',
-                imageUrl: recipe['imageUrl'] ?? 'assets/images/red_onion.jpg',
+                title: recipe['name'] ?? '제목 없음',
+                subtitle: recipe['content'] ?? '설명 없음',
+                imageUrl: recipe['imageURL'] ?? 'assets/images/red_onion.jpg',
               ),
             ),
           );

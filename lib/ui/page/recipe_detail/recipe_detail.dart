@@ -24,7 +24,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
   bool isError = false;
   bool isLiked = false;
 
-  final String defaultImageUrl = 'assets/images/lettuce.jpg';
+  final String defaultImageUrl = 'assets/images/mushroom.jpg';
   final String defaultAuthorId = 'cookingmaster123';
   final String defaultRecipeName = '돼지고기 된장찌개';
   final String defaultDietType = '락토베지테리언';
