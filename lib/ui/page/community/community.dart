@@ -16,7 +16,7 @@ class CommunityPage extends StatefulWidget {
   const CommunityPage({
     Key? key,
     this.pageTitle = '커뮤니티',
-    this.initialFilterCriteria = '모두', // 기본값 설정
+    this.initialFilterCriteria = '모두',
   }) : super(key: key);
 
   @override
@@ -56,6 +56,7 @@ class _CommunityPageState extends State<CommunityPage> {
         'Authorization': 'Bearer ${Config.apiKey}',
       },
     );
+    print(response.body);
 
     if (response.statusCode == 200) {
       List<dynamic> recipes = json.decode(response.body);
@@ -135,9 +136,9 @@ class _CommunityPageState extends State<CommunityPage> {
               itemCount: _recipes.length,
               itemBuilder: (BuildContext context, int index) {
                 var recipe = _recipes[index];
-                String title = recipe['title'] ?? '제목 없음';
-                String subtitle = recipe['description'] ?? '설명 없음';
-                String imageUrl = recipe['imageUrl'] ?? 'assets/images/mushroom.jpg';
+                String title = recipe['name'] ?? '제목 없음';
+                String subtitle = recipe['content'] ?? '설명 없음';
+                String imageUrl = recipe['imageURL'] ?? 'assets/images/mushroom.jpg';
 
                 return GestureDetector(
                   onTap: () {
