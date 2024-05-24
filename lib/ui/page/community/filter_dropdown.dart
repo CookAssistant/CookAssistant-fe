@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cook_assistant/widgets/dropdown.dart'; // 수정된 경로에 맞게 조정
+import 'package:cook_assistant/widgets/dropdown.dart';
 
 class FilterDropdown extends StatelessWidget {
   final String value;
