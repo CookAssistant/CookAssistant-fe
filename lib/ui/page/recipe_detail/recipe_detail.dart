@@ -19,7 +19,7 @@ class RecipeDetailPage extends StatefulWidget {
 }
 
 class _RecipeDetailPageState extends State<RecipeDetailPage> {
-  late Map<String, dynamic> recipeDetails;
+  Map<String, dynamic> recipeDetails = {};
   bool isLoading = true;
   bool isError = false;
   bool isLiked = false;
@@ -58,7 +58,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
         },
       );
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 200) {  // Adjust status code check if necessary
         setState(() {
           recipeDetails = json.decode(response.body);
           isLoading = false;
@@ -76,6 +76,9 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
         isLoading = false;
       });
     }
+
+    print(recipeDetails);
+    print(widget.recipeId);
   }
 
   Future<void> likeRecipe() async {
@@ -169,7 +172,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
       }),
     );
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 204) {
       CustomAlertDialog.showCustomDialog(
         context: context,
         title: '삭제 성공',
@@ -207,7 +210,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
       'userId': widget.userId,
       'name': isError || recipeDetails['recipeName'] == null ? 'TmpRecipeName' : recipeDetails['recipeName'],
       'content': content,
-      'imageURL': isError || recipeDetails['imageUrl'] == null ? defaultImageUrl : recipeDetails['imageUrl'],
+      'imageURL': isError || recipeDetails['imageUrl'] == null ? defaultImageUrl : recipeDetails['imageURL'],
       'createdAt': DateTime.now().toIso8601String(),
     };
 
