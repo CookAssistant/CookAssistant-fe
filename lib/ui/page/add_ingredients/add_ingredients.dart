@@ -155,11 +155,11 @@ class _AddIngredientsPageState extends State<AddIngredientsPage> {
   Future<void> createIngredient() async {
     final String apiUrl = '${Config.baseUrl}/api/v1/ingredients/new';
     final Map<String, dynamic> requestBody = {
-      "userId": 1,
+      "userId": 16,
       "name": _nameController.text,
       "quantity": _quantityController.text,
       "expirationDate": _expirationDateController.text,
-      "imageURL": "assets/images/nut.jpg",
+      "imageURL": "assets/images/lettuce.jpg",
       "type": "string"
     };
 
@@ -175,10 +175,13 @@ class _AddIngredientsPageState extends State<AddIngredientsPage> {
         body: jsonEncode(requestBody),
       );
 
-      print('응답 상태 코드: ${response.statusCode}');
-      print('응답 본문: ${response.body}');
+      var decodedResponse = utf8.decode(response.bodyBytes);
+      var jsonResponse = jsonDecode(decodedResponse);
 
-      if (response.statusCode == 200) {
+      print('Response Status Code: ${response.statusCode}');
+      print('Response Body: $decodedResponse');
+
+      if (response.statusCode == 201) {
         CustomAlertDialog.showCustomDialog(
           context: context,
           title: '등록 완료',
@@ -186,7 +189,7 @@ class _AddIngredientsPageState extends State<AddIngredientsPage> {
           cancelButtonText: '',
           confirmButtonText: '확인',
           onConfirm: () {
-            Navigator.of(context).pop(); // 다이얼로그를 닫습니다.
+            Navigator.of(context).pop();
           },
         );
       } else {
