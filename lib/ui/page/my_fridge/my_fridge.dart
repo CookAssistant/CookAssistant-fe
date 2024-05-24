@@ -60,8 +60,8 @@ class FridgeCard extends StatelessWidget {
                     ),
                     SizedBox(height: 2),
                     Text(
-                      quantity,
-                      style: AppTextStyles.bodyM.copyWith(color: AppColors.neutralDarkDarkest),
+                      '보유량: $quantity',
+                      style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkLight),
                     ),
                   ],
                 ),
