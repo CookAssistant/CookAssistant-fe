@@ -25,7 +25,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
   bool isError = false;
   bool isLiked = false;
 
-  final String defaultImageUrl = 'assets/images/mushroom.jpg';
+  final String defaultImageUrl = 'assets/images/nut.jpg';
   final String defaultAuthorId = 'defaultNickName';
   final String defaultRecipeName = '돼지고기 된장찌개';
   final String defaultDietType = 'defaultDietType';
@@ -296,37 +296,40 @@ tmptmptmp
           },
         ),
         actions: [
-          PopupMenuButton<String>(
-            icon: Icon(Icons.more_vert, color: AppColors.neutralDarkDarkest),
-            onSelected: (String value) {
-              if (value == 'delete') {
-                CustomAlertDialog.showCustomDialog(
-                  context: context,
-                  title: '레시피 삭제',
-                  content: '정말로 레시피를 삭제하시겠습니까?',
-                  cancelButtonText: '취소',
-                  confirmButtonText: '삭제',
-                  onConfirm: () {
-                    Navigator.of(context).pop();
-                    deleteRecipe(context);
-                  },
-                );
-              }
-            },
-            itemBuilder: (BuildContext context) {
-              return [
-                PopupMenuItem<String>(
-                  value: 'delete',
-                  child: Container(
-                    color: Colors.white, // Set background color to white
+          Theme(
+            data: Theme.of(context).copyWith(
+              cardColor: Colors.white,
+              shadowColor: Colors.transparent,
+            ),
+            child: PopupMenuButton<String>(
+              icon: Icon(Icons.more_vert, color: AppColors.neutralDarkDarkest),
+              onSelected: (String value) {
+                if (value == 'delete') {
+                  CustomAlertDialog.showCustomDialog(
+                    context: context,
+                    title: '레시피 삭제',
+                    content: '정말로 레시피를 삭제하시겠습니까?',
+                    cancelButtonText: '취소',
+                    confirmButtonText: '삭제',
+                    onConfirm: () {
+                      Navigator.of(context).pop();
+                      deleteRecipe(context);
+                    },
+                  );
+                }
+              },
+              itemBuilder: (BuildContext context) {
+                return [
+                  PopupMenuItem<String>(
+                    value: 'delete',
                     child: Text(
                       '삭제하기',
                       style: AppTextStyles.bodyM.copyWith(color: AppColors.neutralDarkDarkest),
                     ),
                   ),
-                ),
-              ];
-            },
+                ];
+              },
+            ),
           ),
         ],
       ),
@@ -423,7 +426,6 @@ tmptmptmp
                   style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkDarkest),
                 ),
                 const SizedBox(height: 32.0),
-                // Remove the PrimaryButton from here
               ],
             ),
           ),
