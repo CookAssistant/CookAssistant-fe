@@ -52,6 +52,7 @@ class CustomCard extends StatelessWidget {
                 color: AppColors.neutralDarkDarkest,
               ),
               textAlign: TextAlign.left,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           Positioned(
@@ -64,6 +65,7 @@ class CustomCard extends StatelessWidget {
                 color: AppColors.neutralDarkDarkest,
               ),
               textAlign: TextAlign.left,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
