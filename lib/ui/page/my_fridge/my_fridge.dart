@@ -4,8 +4,9 @@ import 'dart:convert';
 import 'package:cook_assistant/ui/theme/color.dart';
 import 'package:cook_assistant/ui/theme/text_styles.dart';
 import 'package:cook_assistant/widgets/button/primary_button.dart';
-import 'package:cook_assistant/ui/page/add_ingredients/add_ingredients.dart'; // Make sure this import is correct
-import 'package:cook_assistant/resource/config.dart'; // Ensure this import is correct
+import 'package:cook_assistant/ui/page/add_ingredients/add_ingredients.dart';
+import 'package:cook_assistant/resource/config.dart';
+import 'package:cook_assistant/widgets/dialog.dart';
 
 class FridgeCard extends StatelessWidget {
   final String title;
@@ -86,6 +87,7 @@ class MyFridgePage extends StatefulWidget {
 class _MyFridgePageState extends State<MyFridgePage> {
   List<Map<String, dynamic>> fridgeItems = [];
   bool isLoading = true;
+  final int userId = 16;
 
   @override
   void initState() {
@@ -94,7 +96,6 @@ class _MyFridgePageState extends State<MyFridgePage> {
   }
 
   Future<void> fetchIngredients() async {
-    final int userId = 1;
     final response = await http.get(
       Uri.parse('${Config.baseUrl}/api/v1/ingredients/all/$userId'),
       headers: {
@@ -112,7 +113,7 @@ class _MyFridgePageState extends State<MyFridgePage> {
             "title": ingredient['name'] ?? 'Unknown',
             "expiryDate": ingredient['expirationDate'] ?? 'Unknown',
             "quantity": ingredient['quantity'] ?? 'Unknown',
-            "imageUrl": 'assets/images/nut.jpg',
+            "imageUrl": ingredient['imageURL'] ?? 'Unknown',
           };
         }).toList();
         isLoading = false;
@@ -127,7 +128,6 @@ class _MyFridgePageState extends State<MyFridgePage> {
   }
 
   Future<void> deleteIngredient(int ingredientId) async {
-    final int userId = 1;
     final response = await http.delete(
       Uri.parse('${Config.baseUrl}/api/v1/ingredients/delete'),
       headers: {
@@ -140,16 +140,28 @@ class _MyFridgePageState extends State<MyFridgePage> {
       }),
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 204) {
       setState(() {
         fridgeItems.removeWhere((item) => item['id'] == ingredientId);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('식재료가 성공적으로 삭제되었습니다.')),
+        CustomAlertDialog.showCustomDialog(
+          context: context,
+          title: '식재료 삭제',
+          content: '식재료가 성공적으로 삭제되었습니다.',
+          cancelButtonText: '',
+          confirmButtonText: '확인',
+          onConfirm: () {
+          },
         );
       });
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('식재료 삭제에 실패했습니다. 상태 코드: ${response.statusCode}')),
+      CustomAlertDialog.showCustomDialog(
+        context: context,
+        title: '식재료 삭제 실패',
+        content: '식재료 삭제를 실패하였습니다.',
+        cancelButtonText: '',
+        confirmButtonText: '확인',
+        onConfirm: () {
+        },
       );
     }
   }
@@ -180,15 +192,15 @@ class _MyFridgePageState extends State<MyFridgePage> {
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
-              padding: const EdgeInsets.all(16.0), // Adjust padding as needed
+              padding: const EdgeInsets.all(16.0),
               child: PrimaryButton(
                 text: '식재료 추가하기',
                 onPressed: () {
                   Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => AddIngredientsPage(), // Ensure that you have AddIngredientsPage class defined in the imported file
+                    builder: (context) => AddIngredientsPage(),
                   ));
                 },
-                borderRadius: 12.0, // Optional, adjust as per your design
+                borderRadius: 12.0,
               ),
             ),
           ),
