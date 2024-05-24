@@ -170,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => RecipeDetailPage(registered: true, userId: 16, recipeId: 1),
+                  builder: (context) => RecipeDetailPage(registered: true, userId: 18, recipeId: 1),
                 ),
               );
             },
