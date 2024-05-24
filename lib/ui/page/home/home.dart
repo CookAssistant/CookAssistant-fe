@@ -170,13 +170,13 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => RecipeDetailPage(registered: true, userId: 1, recipeId: 1),
+                  builder: (context) => RecipeDetailPage(registered: true, userId: 16, recipeId: 1),
                 ),
               );
             },
             child: SizedBox(
-              width: 189, // 카드의 너비 지정
-              height: 189, // 카드의 높이 지정
+              width: 189,
+              height: 189,
               child: CustomCard(
                 title: '임시타이틀',
                 subtitle: '부제목',
@@ -208,7 +208,9 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => RecipeDetailPage(registered: true, userId: 16, recipeId: recipe['id']),
+                  builder: (context) => RecipeDetailPage(registered: true,
+                    userId: recipe['userId'],
+                    recipeId: recipe['recipeId'],),
                 ),
               );
             },
@@ -241,8 +243,8 @@ class _HomeScreenState extends State<HomeScreen> {
           }
           return GestureDetector(
             child: SizedBox(
-              width: 189, // 카드의 너비 지정
-              height: 189, // 카드의 높이 지정
+              width: 189,
+              height: 189,
               child: CustomCard(
                 title: '소비기한 : 2024.04.15',
                 subtitle: '스팸 2캔',
