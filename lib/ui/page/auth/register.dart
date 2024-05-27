@@ -43,6 +43,11 @@ class _RegisterPageState extends State<RegisterPage> {
         'role': 'ADMIN'
       });
 
+      // Log the request in UTF-8
+      print('Request URL: $url');
+      print('Request Headers: {\'Content-Type\': \'application/json; charset=UTF-8\'}');
+      print('Request Body (UTF-8): ${utf8.decode(requestBody.codeUnits)}');
+
       var response = await http.post(url,
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
@@ -50,10 +55,14 @@ class _RegisterPageState extends State<RegisterPage> {
         body: requestBody,
       );
 
+      // Log the response in UTF-8
       var decodedResponse = utf8.decode(response.bodyBytes);
+      print('Response Status Code: ${response.statusCode}');
+      print('Response Body (UTF-8): $decodedResponse');
+
       var jsonResponse = jsonDecode(decodedResponse);
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 200) {
         CustomAlertDialog.showCustomDialog(
           context: context,
           title: '회원가입 완료',
@@ -80,6 +89,7 @@ class _RegisterPageState extends State<RegisterPage> {
       }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
