@@ -195,7 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ? _buildHorizontalListForFridge()
                 : _buildHorizontalListForFridgeFromAPI(),
             SizedBox(height: 32),
-            _buildSectionTitle(context, '유저들이 만든 레시피', CommunityPage(pageTitle: '커뮤니티'),
+            _buildSectionTitle(context, '유저들이 만든 레시피', CommunityPage(pageTitle: '커뮤니티', initialFilterCriteria : '모두'),
                 onTap: () {
                   widget.onNavigateToPage?.call(1);
                 }),
