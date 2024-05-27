@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:cook_assistant/widgets/button/primary_button.dart';
-import 'package:cook_assistant/ui/theme/color.dart';
-import 'package:cook_assistant/ui/theme/text_styles.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:cook_assistant/resource/config.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cook_assistant/ui/theme/color.dart';
+import 'package:cook_assistant/ui/theme/text_styles.dart';
+import 'package:cook_assistant/widgets/button/primary_button.dart';
 import 'package:cook_assistant/widgets/dialog.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cook_assistant/resource/config.dart';
 
 class RecipeDetailPage extends StatefulWidget {
   final bool registered;
@@ -26,7 +26,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
   bool isLiked = false;
   int userId = 0;
 
-  final String defaultImageUrl = 'assets/images/nut.jpg';
+  final String defaultImageUrl = 'assets/images/mushroom.jpg';
   final String defaultAuthorId = 'defaultNickName';
   final String defaultRecipeName = '돼지고기 된장찌개';
   final String defaultDietType = 'defaultDietType';
@@ -106,7 +106,7 @@ tmptmptmp
 
       if (response.statusCode == 200) {
         setState(() {
-          recipeDetails = json.decode(utf8.decode(response.bodyBytes));
+          recipeDetails = json.decode(utf8.decode(response.bodyBytes))['data'];
           isLoading = false;
           isLiked = recipeDetails['isLikedByUser'] ?? false;
         });
@@ -127,9 +127,9 @@ tmptmptmp
     print('Recipe ID: ${widget.recipeId}');
   }
 
-  String formatDate(String dateStr) {
+  String formatDate(List<dynamic> dateList) {
     try {
-      final DateTime dateTime = DateTime.parse(dateStr);
+      final DateTime dateTime = DateTime(dateList[0], dateList[1], dateList[2], dateList[3], dateList[4], dateList[5], dateList[6]);
       final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm');
       return formatter.format(dateTime);
     } catch (e) {
@@ -193,7 +193,7 @@ tmptmptmp
       }),
     );
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 204) {
       setState(() {
         isLiked = false;
       });
@@ -228,12 +228,11 @@ tmptmptmp
         'Authorization': 'Bearer $accessToken',
       },
       body: jsonEncode({
-        'userId': userId,
         'recipeId': widget.recipeId,
       }),
     );
 
-    if (response.statusCode == 204) {
+    if (response.statusCode == 200) {
       CustomAlertDialog.showCustomDialog(
         context: context,
         title: '삭제 성공',
@@ -393,7 +392,7 @@ tmptmptmp
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Image.asset(
-                  isError || recipeDetails['imageURL'] == null ? defaultImageUrl : recipeDetails['imageURL'],
+                  recipeDetails['imageURL'] ?? defaultImageUrl,
                   width: double.infinity,
                   height: 300,
                   fit: BoxFit.cover,
@@ -403,7 +402,7 @@ tmptmptmp
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      isError || recipeDetails['name'] == null ? defaultRecipeName : recipeDetails['name'],
+                      recipeDetails['name'] ?? defaultRecipeName,
                       style: AppTextStyles.headingH2.copyWith(color: AppColors.neutralDarkDarkest),
                     ),
                     IconButton(
@@ -423,7 +422,7 @@ tmptmptmp
                 ),
                 const SizedBox(height: 8.0),
                 Text(
-                  isError || recipeDetails['dietType'] == null ? defaultDietType : recipeDetails['dietType'],
+                  recipeDetails['dietType'] ?? defaultDietType,
                   style: AppTextStyles.bodyL.copyWith(color: AppColors.neutralDarkDarkest),
                 ),
                 const SizedBox(height: 16.0),
@@ -431,13 +430,13 @@ tmptmptmp
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      isError || recipeDetails['authorId'] == null ? defaultAuthorId : recipeDetails['authorId'],
+                      recipeDetails['authorId'] ?? defaultAuthorId,
                       style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkLight),
                     ),
                     Text(
-                      isError || recipeDetails['createdAt'] == null
-                          ? defaultDate
-                          : formatDate(recipeDetails['createdAt']),
+                      recipeDetails['createdAt'] != null
+                          ? formatDate(recipeDetails['createdAt'])
+                          : defaultDate,
                       style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkLight),
                     ),
                   ],
@@ -448,9 +447,9 @@ tmptmptmp
                   style: AppTextStyles.headingH5.copyWith(color: AppColors.neutralDarkDarkest),
                 ),
                 Text(
-                  isError || recipeDetails['mainIngredients'] == null
-                      ? defaultMainIngredients.join(', ')
-                      : (recipeDetails['mainIngredients'] as List<dynamic>).join(', '),
+                  recipeDetails['mainIngredients'] != null
+                      ? (recipeDetails['mainIngredients'] as List<dynamic>).join(', ')
+                      : defaultMainIngredients.join(', '),
                   style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkDarkest),
                 ),
                 const SizedBox(height: 16.0),
@@ -459,9 +458,9 @@ tmptmptmp
                   style: AppTextStyles.headingH5.copyWith(color: AppColors.neutralDarkDarkest),
                 ),
                 Text(
-                  isError || recipeDetails['allIngredients'] == null
-                      ? defaultAllIngredients.join(', ')
-                      : (recipeDetails['allIngredients'] as List<dynamic>).join(', '),
+                  recipeDetails['allIngredients'] != null
+                      ? (recipeDetails['allIngredients'] as List<dynamic>).join(', ')
+                      : defaultAllIngredients.join(', '),
                   style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkDarkest),
                 ),
                 const SizedBox(height: 32.0),
@@ -470,9 +469,7 @@ tmptmptmp
                   style: AppTextStyles.headingH5.copyWith(color: AppColors.neutralDarkDarkest),
                 ),
                 Text(
-                  isError || recipeDetails['content'] == null
-                      ? defaultContent
-                      : recipeDetails['content'],
+                  recipeDetails['content'] ?? defaultContent,
                   style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkDarkest),
                 ),
                 const SizedBox(height: 32.0),
