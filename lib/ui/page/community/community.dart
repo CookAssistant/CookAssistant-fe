@@ -8,6 +8,7 @@ import 'package:cook_assistant/ui/page/community/sort_dropdown.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cook_assistant/resource/config.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CommunityPage extends StatefulWidget {
   final String pageTitle;
@@ -32,52 +33,107 @@ class _CommunityPageState extends State<CommunityPage> {
 
   List<dynamic> _recipes = [];
   bool _isLoading = true;
+  int userId = 0;
 
   @override
   void initState() {
     super.initState();
     _sortingCriteria = '최신순';
     _filterCriteria = widget.initialFilterCriteria;
-    fetchRecipes();
+    fetchUserDetails();
   }
 
-  Future<void> fetchRecipes() async {
-    String endpoint = '${Config.baseUrl}/api/v1/recipes/all';
-    if (_filterCriteria == '나의 레시피') {
-      endpoint = '${Config.baseUrl}/api/v1/recipes/all/{userId}';
-    } else if (_filterCriteria == '좋아요한 레시피') {
-      endpoint = '${Config.baseUrl}/api/v1/recipes/likes/{userId}';
-    }
+  Future<void> fetchUserDetails() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? accessToken = prefs.getString('accessToken');
+    if (accessToken != null && accessToken.isNotEmpty && accessToken != 'guest') {
+      try {
+        var url = Uri.parse('${Config.baseUrl}/api/v1/users/myPage');
+        var response = await http.get(url, headers: {
+          'Authorization': 'Bearer $accessToken',
+        });
 
-    final response = await http.get(
-      Uri.parse(endpoint),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${Config.apiKey}',
-      },
-    );
-    print(response.body);
 
-    if (response.statusCode == 200) {
-      List<dynamic> recipes = json.decode(response.body);
+        print('Response Status Code: ${response.statusCode}');
+        print('Response Body: ${utf8.decode(response.bodyBytes)}');
 
-      if (_sortingCriteria == '최신순') {
-        recipes.sort((a, b) => b['createdAt'].compareTo(a['createdAt']));
-      } else if (_sortingCriteria == '좋아요순') {
-        recipes.sort((a, b) => b['likes'].compareTo(a['likes']));
+        if (response.statusCode == 200) {
+          var jsonResponse = jsonDecode(utf8.decode(response.bodyBytes));
+          setState(() {
+            userId = jsonResponse['data']['userId'];
+          });
+          fetchRecipes(accessToken);
+        } else {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+        print('Error fetching user details: $e');
       }
-
-      setState(() {
-        _recipes = recipes;
-        _isLoading = false;
-      });
     } else {
       setState(() {
         _isLoading = false;
       });
-      print('Failed to load recipes: ${response.statusCode}');
     }
   }
+
+  Future<void> fetchRecipes(String accessToken) async {
+    String endpoint = '${Config.baseUrl}/api/v1/recipes/all';
+    if (_filterCriteria == '나의 레시피') {
+      endpoint = '${Config.baseUrl}/api/v1/recipes/all/$userId';
+    } else if (_filterCriteria == '좋아요한 레시피') {
+      endpoint = '${Config.baseUrl}/api/v1/recipes/likes/$userId';
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse(endpoint),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      );
+
+
+      String responseBody = utf8.decode(response.bodyBytes);
+      print(responseBody);
+
+      if (response.statusCode == 200) {
+        var jsonResponse = json.decode(responseBody);
+        List<dynamic> recipes = jsonResponse['data'];
+
+        if (_sortingCriteria == '최신순') {
+          recipes.sort((a, b) {
+            DateTime dateA = DateTime(a['createdAt'][0], a['createdAt'][1], a['createdAt'][2], a['createdAt'][3], a['createdAt'][4], a['createdAt'][5], a['createdAt'][6]);
+            DateTime dateB = DateTime(b['createdAt'][0], b['createdAt'][1], b['createdAt'][2], b['createdAt'][3], b['createdAt'][4], b['createdAt'][5], b['createdAt'][6]);
+            return dateB.compareTo(dateA);
+          });
+        } else if (_sortingCriteria == '좋아요순') {
+          recipes.sort((a, b) => b['likes'].compareTo(a['likes']));
+        }
+
+        setState(() {
+          _recipes = recipes;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+        print('Failed to load recipes: ${response.statusCode}');
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      print('Error fetching recipes: $e');
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +162,12 @@ class _CommunityPageState extends State<CommunityPage> {
                       setState(() {
                         _filterCriteria = newValue!;
                         _isLoading = true;
-                        fetchRecipes();
+                        SharedPreferences.getInstance().then((prefs) {
+                          String? accessToken = prefs.getString('accessToken');
+                          if (accessToken != null && accessToken.isNotEmpty) {
+                            fetchRecipes(accessToken);
+                          }
+                        });
                       });
                     },
                   ),
@@ -117,7 +178,12 @@ class _CommunityPageState extends State<CommunityPage> {
                       setState(() {
                         _sortingCriteria = newValue!;
                         _isLoading = true;
-                        fetchRecipes();
+                        SharedPreferences.getInstance().then((prefs) {
+                          String? accessToken = prefs.getString('accessToken');
+                          if (accessToken != null && accessToken.isNotEmpty) {
+                            fetchRecipes(accessToken);
+                          }
+                        });
                       });
                     },
                   ),
