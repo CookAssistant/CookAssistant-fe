@@ -10,7 +10,6 @@ import 'package:cook_assistant/ui/page/auth/register.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cook_assistant/resource/config.dart';
 
-
 class LoginPage extends StatefulWidget {
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -20,6 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   String _username = '';
   String _password = '';
+  String _errorMessage = '';
 
   void _login() async {
     if (_formKey.currentState!.validate()) {
@@ -32,7 +32,6 @@ class _LoginPageState extends State<LoginPage> {
         'password': _password
       });
 
-      // Log the request in UTF-8
       print('Request URL: $url');
       print('Request Headers: {\'Content-Type\': \'application/json; charset=UTF-8\'}');
       print('Request Body (UTF-8): ${utf8.decode(requestBody.codeUnits)}');
@@ -45,27 +44,37 @@ class _LoginPageState extends State<LoginPage> {
           body: requestBody,
         );
 
-        // Log the response in UTF-8
         var decodedResponse = utf8.decode(response.bodyBytes);
         print('Response Status Code: ${response.statusCode}');
         print('Response Body (UTF-8): $decodedResponse');
 
         if (response.statusCode == 200) {
           var jsonResponse = jsonDecode(decodedResponse);
-          String accessToken = jsonResponse['accessToken'];
+          String accessToken = jsonResponse['data']['accessToken'] ?? '';
 
-          // Save accessToken to SharedPreferences
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          await prefs.setString('accessToken', accessToken);
+          if (accessToken.isNotEmpty) {
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            await prefs.setString('accessToken', accessToken);
 
-          // Navigate to home screen
-          Navigator.pushReplacementNamed(context, '/home');
+            if (context.mounted) {
+              Navigator.of(context).pop(true);
+            }
+          } else {
+            setState(() {
+              _errorMessage = 'Invalid access token received.';
+            });
+          }
         } else {
-          // Handle login failure here
           var jsonResponse = jsonDecode(decodedResponse);
-          print('Login failed: ${jsonResponse['message']}');
+          setState(() {
+            _errorMessage = jsonResponse['msg'];
+          });
+          print('Login failed: ${jsonResponse['msg']}');
         }
       } catch (e) {
+        setState(() {
+          _errorMessage = 'An error occurred: $e';
+        });
         print('An error occurred: $e');
       }
     }
@@ -102,7 +111,7 @@ class _LoginPageState extends State<LoginPage> {
                         style: AppTextStyles.headingH1.copyWith(color: AppColors.neutralDarkDarkest),
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       Text(
                         'Log in to cookassistant',
                         textAlign: TextAlign.center,
@@ -135,6 +144,15 @@ class _LoginPageState extends State<LoginPage> {
                         },
                         onSaved: (value) => _password = value!,
                       ),
+                      SizedBox(height: 16),
+                      if (_errorMessage.isNotEmpty) ...[
+                        Text(
+                          _errorMessage,
+                          style: TextStyle(color: Colors.red),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 10),
+                      ],
                       SizedBox(height: 32),
                       PrimaryButton(
                         text: '로그인',
