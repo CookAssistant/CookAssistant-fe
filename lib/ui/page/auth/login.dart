@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:cook_assistant/ui/theme/color.dart';
 import 'package:cook_assistant/ui/theme/text_styles.dart';
 import 'package:cook_assistant/widgets/text_field.dart';
 import 'package:cook_assistant/widgets/button/primary_button.dart';
 import 'package:cook_assistant/widgets/button/secondary_button.dart';
 import 'package:cook_assistant/ui/page/auth/register.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cook_assistant/resource/config.dart';
+
 
 class LoginPage extends StatefulWidget {
   @override
@@ -16,10 +21,53 @@ class _LoginPageState extends State<LoginPage> {
   String _username = '';
   String _password = '';
 
-  void _login() {
+  void _login() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      print('Logging in with username: $_username and password: $_password');
+
+      var url = Uri.parse('${Config.baseUrl}/api/v1/users/login');
+
+      var requestBody = jsonEncode(<String, String>{
+        'email': _username,
+        'password': _password
+      });
+
+      // Log the request in UTF-8
+      print('Request URL: $url');
+      print('Request Headers: {\'Content-Type\': \'application/json; charset=UTF-8\'}');
+      print('Request Body (UTF-8): ${utf8.decode(requestBody.codeUnits)}');
+
+      try {
+        var response = await http.post(url,
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: requestBody,
+        );
+
+        // Log the response in UTF-8
+        var decodedResponse = utf8.decode(response.bodyBytes);
+        print('Response Status Code: ${response.statusCode}');
+        print('Response Body (UTF-8): $decodedResponse');
+
+        if (response.statusCode == 200) {
+          var jsonResponse = jsonDecode(decodedResponse);
+          String accessToken = jsonResponse['accessToken'];
+
+          // Save accessToken to SharedPreferences
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString('accessToken', accessToken);
+
+          // Navigate to home screen
+          Navigator.pushReplacementNamed(context, '/home');
+        } else {
+          // Handle login failure here
+          var jsonResponse = jsonDecode(decodedResponse);
+          print('Login failed: ${jsonResponse['message']}');
+        }
+      } catch (e) {
+        print('An error occurred: $e');
+      }
     }
   }
 
@@ -38,7 +86,7 @@ class _LoginPageState extends State<LoginPage> {
         child: Center(
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height, // 최소 높이를 화면의 높이로 설정합니다.
+              minHeight: MediaQuery.of(context).size.height,
             ),
             child: IntrinsicHeight(
               child: Padding(
@@ -57,7 +105,7 @@ class _LoginPageState extends State<LoginPage> {
                       SizedBox(height: 10),
                       Text(
                         'Log in to cookassistant',
-                        textAlign: TextAlign.center, // Center text alignment
+                        textAlign: TextAlign.center,
                         style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkLight),
                       ),
                       SizedBox(height: 32.0),
@@ -106,5 +154,4 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
-
 }
