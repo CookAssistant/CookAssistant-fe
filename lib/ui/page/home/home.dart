@@ -25,7 +25,11 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _pageController = PageController(viewportFraction: 1);
   double _currentPage = 0;
-  final _bannerImages = ['assets/banners/banner1.webp', 'assets/banners/banner2.webp', 'assets/banners/banner3.webp'];
+  final _bannerImages = [
+    'assets/banners/banner1.webp',
+    'assets/banners/banner2.webp',
+    'assets/banners/banner3.webp'
+  ];
   List<dynamic> _recipes = [];
   List<Map<String, dynamic>> _fridgeItems = [];
   bool _isLoadingRecipes = true;
@@ -61,10 +65,25 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
       if (response.statusCode == 200) {
-        List<dynamic> recipes = json.decode(utf8.decode(response.bodyBytes))['data'];
+        List<dynamic> recipes =
+        json.decode(utf8.decode(response.bodyBytes))['data'];
         recipes.sort((a, b) {
-          DateTime dateA = DateTime(a['createdAt'][0], a['createdAt'][1], a['createdAt'][2], a['createdAt'][3], a['createdAt'][4], a['createdAt'][5], a['createdAt'][6]);
-          DateTime dateB = DateTime(b['createdAt'][0], b['createdAt'][1], b['createdAt'][2], b['createdAt'][3], b['createdAt'][4], b['createdAt'][5], b['createdAt'][6]);
+          DateTime dateA = DateTime(
+              a['createdAt'][0],
+              a['createdAt'][1],
+              a['createdAt'][2],
+              a['createdAt'][3],
+              a['createdAt'][4],
+              a['createdAt'][5],
+              a['createdAt'][6]);
+          DateTime dateB = DateTime(
+              b['createdAt'][0],
+              b['createdAt'][1],
+              b['createdAt'][2],
+              b['createdAt'][3],
+              b['createdAt'][4],
+              b['createdAt'][5],
+              b['createdAt'][6]);
           return dateB.compareTo(dateA);
         });
         setState(() {
@@ -99,7 +118,8 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
       if (response.statusCode == 200) {
-        List<dynamic> ingredients = json.decode(response.body);
+        var jsonResponse = json.decode(utf8.decode(response.bodyBytes));
+        List<dynamic> ingredients = jsonResponse['data'];
         setState(() {
           _fridgeItems = ingredients.map((ingredient) {
             return {
@@ -138,7 +158,8 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text(
           'CookAssistant',
-          style: AppTextStyles.headingH4.copyWith(color: AppColors.neutralDarkDarkest),
+          style:
+          AppTextStyles.headingH4.copyWith(color: AppColors.neutralDarkDarkest),
         ),
       ),
       body: SingleChildScrollView(
