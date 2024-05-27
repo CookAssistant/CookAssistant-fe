@@ -147,7 +147,6 @@ class _CommunityPageState extends State<CommunityPage> {
                       MaterialPageRoute(
                         builder: (context) => RecipeDetailPage(
                           registered: true,
-                          userId: recipe['userId'],
                           recipeId: recipe['recipeId'],
                         ),
                       ),
