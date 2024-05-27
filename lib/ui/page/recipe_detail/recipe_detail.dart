@@ -7,13 +7,13 @@ import 'dart:convert';
 import 'package:cook_assistant/resource/config.dart';
 import 'package:cook_assistant/widgets/dialog.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RecipeDetailPage extends StatefulWidget {
   final bool registered;
-  final int userId;
   final int recipeId;
 
-  RecipeDetailPage({Key? key, required this.registered, required this.userId, required this.recipeId}) : super(key: key);
+  RecipeDetailPage({Key? key, required this.registered, required this.recipeId}) : super(key: key);
 
   @override
   _RecipeDetailPageState createState() => _RecipeDetailPageState();
@@ -24,6 +24,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
   bool isLoading = true;
   bool isError = false;
   bool isLiked = false;
+  int userId = 0;
 
   final String defaultImageUrl = 'assets/images/nut.jpg';
   final String defaultAuthorId = 'defaultNickName';
@@ -47,22 +48,65 @@ tmptmptmp
   @override
   void initState() {
     super.initState();
-    fetchRecipeDetails();
+    fetchUserDetails();
   }
 
-  Future<void> fetchRecipeDetails() async {
+  Future<void> fetchUserDetails() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? accessToken = prefs.getString('accessToken');
+    if (accessToken != null && accessToken.isNotEmpty && accessToken != 'guest') {
+      try {
+        var url = Uri.parse('${Config.baseUrl}/api/v1/users/myPage');
+        var response = await http.get(url, headers: {
+          'Authorization': 'Bearer $accessToken',
+        });
+
+        print('Response Status Code: ${response.statusCode}');
+        print('Response Body: ${utf8.decode(response.bodyBytes)}');
+
+        if (response.statusCode == 200) {
+          var jsonResponse = jsonDecode(utf8.decode(response.bodyBytes));
+          setState(() {
+            userId = jsonResponse['data']['userId'];
+          });
+          fetchRecipeDetails(accessToken);
+        } else {
+          setState(() {
+            isError = true;
+            isLoading = false;
+          });
+        }
+      } catch (e) {
+        setState(() {
+          isError = true;
+          isLoading = false;
+        });
+        print('Error fetching user details: $e');
+      }
+    } else {
+      setState(() {
+        isError = true;
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> fetchRecipeDetails(String accessToken) async {
     try {
       final response = await http.get(
         Uri.parse('${Config.baseUrl}/api/v1/recipes/${widget.recipeId}'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${Config.apiKey}',
+          'Authorization': 'Bearer $accessToken',
         },
       );
 
+      print('Response Status Code: ${response.statusCode}');
+      print('Response Body: ${utf8.decode(response.bodyBytes)}');
+
       if (response.statusCode == 200) {
         setState(() {
-          recipeDetails = json.decode(response.body);
+          recipeDetails = json.decode(utf8.decode(response.bodyBytes));
           isLoading = false;
           isLiked = recipeDetails['isLikedByUser'] ?? false;
         });
@@ -94,14 +138,17 @@ tmptmptmp
   }
 
   Future<void> likeRecipe() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? accessToken = prefs.getString('accessToken');
+
     final response = await http.post(
       Uri.parse('${Config.baseUrl}/api/v1/likes/new'),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${Config.apiKey}',
+        'Authorization': 'Bearer $accessToken',
       },
       body: jsonEncode({
-        'userId': widget.userId,
+        'userId': userId,
         'recipeId': widget.recipeId,
       }),
     );
@@ -116,8 +163,7 @@ tmptmptmp
         content: '레시피에 좋아요를 눌렀습니다.',
         cancelButtonText: '',
         confirmButtonText: '확인',
-        onConfirm: () {
-        },
+        onConfirm: () {},
       );
     } else {
       CustomAlertDialog.showCustomDialog(
@@ -126,21 +172,23 @@ tmptmptmp
         content: '레시피 좋아요에 실패하였습니다. 상태 코드: ${response.statusCode}',
         cancelButtonText: '',
         confirmButtonText: '확인',
-        onConfirm: () {
-        },
+        onConfirm: () {},
       );
     }
   }
 
   Future<void> unlikeRecipe() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? accessToken = prefs.getString('accessToken');
+
     final response = await http.delete(
       Uri.parse('${Config.baseUrl}/api/v1/likes/delete'),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${Config.apiKey}',
+        'Authorization': 'Bearer $accessToken',
       },
       body: jsonEncode({
-        'userId': widget.userId,
+        'userId': userId,
         'recipeId': widget.recipeId,
       }),
     );
@@ -155,8 +203,7 @@ tmptmptmp
         content: '레시피 좋아요를 취소하였습니다.',
         cancelButtonText: '',
         confirmButtonText: '확인',
-        onConfirm: () {
-        },
+        onConfirm: () {},
       );
     } else {
       CustomAlertDialog.showCustomDialog(
@@ -165,21 +212,23 @@ tmptmptmp
         content: '레시피 좋아요 취소에 실패하였습니다. 상태 코드: ${response.statusCode}',
         cancelButtonText: '',
         confirmButtonText: '확인',
-        onConfirm: () {
-        },
+        onConfirm: () {},
       );
     }
   }
 
   Future<void> deleteRecipe(BuildContext context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? accessToken = prefs.getString('accessToken');
+
     final response = await http.delete(
       Uri.parse('${Config.baseUrl}/api/v1/recipes/delete'),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${Config.apiKey}',
+        'Authorization': 'Bearer $accessToken',
       },
       body: jsonEncode({
-        'userId': widget.userId,
+        'userId': userId,
         'recipeId': widget.recipeId,
       }),
     );
@@ -208,6 +257,10 @@ tmptmptmp
   }
 
   Future<void> registerRecipe() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? accessToken = prefs.getString('accessToken');
+    print('accessToken: ');
+    print(accessToken);
     String ingredients = (isError || recipeDetails['allIngredients'] == null
         ? defaultAllIngredients
         : recipeDetails['allIngredients']).join(', ');
@@ -219,11 +272,9 @@ tmptmptmp
     final String content = 'Ingredients:\n$ingredients\n\nSteps:\n$steps';
 
     final Map<String, dynamic> requestData = {
-      'userId': widget.userId,
       'name': isError || recipeDetails['name'] == null ? 'TmpRecipeName' : recipeDetails['name'],
       'content': content,
       'imageURL': isError || recipeDetails['imageURL'] == null ? defaultImageUrl : recipeDetails['imageURL'],
-      'createdAt': DateTime.now().toIso8601String(),
     };
 
     print('Request Data: $requestData');
@@ -233,7 +284,7 @@ tmptmptmp
         Uri.parse('${Config.baseUrl}/api/v1/recipes/new'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${Config.apiKey}',
+          'Authorization': 'Bearer $accessToken',
         },
         body: jsonEncode(requestData),
       );
@@ -244,7 +295,7 @@ tmptmptmp
       print('Response Status Code: ${response.statusCode}');
       print('Response Body: $decodedResponse');
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 200) {
         CustomAlertDialog.showCustomDialog(
           context: context,
           title: '등록 성공',
@@ -259,14 +310,13 @@ tmptmptmp
         CustomAlertDialog.showCustomDialog(
           context: context,
           title: '등록 실패',
-          content: '레시피 등록에 실패했습니다. 상태 코드: ${jsonResponse.statusCode}',
+          content: '레시피 등록에 실패했습니다. 상태 코드: ${jsonResponse['statusCode']}',
           cancelButtonText: '',
           confirmButtonText: '확인',
           onConfirm: () {},
         );
       }
     } catch (e) {
-      // Log the exception
       print('Exception: $e');
       CustomAlertDialog.showCustomDialog(
         context: context,
