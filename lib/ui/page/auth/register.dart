@@ -9,7 +9,6 @@ import 'package:cook_assistant/ui/page/auth/login.dart';
 import 'package:cook_assistant/resource/config.dart';
 import 'package:cook_assistant/widgets/dialog.dart';
 
-
 class RegisterPage extends StatefulWidget {
   @override
   _RegisterPageState createState() => _RegisterPageState();
@@ -40,38 +39,53 @@ class _RegisterPageState extends State<RegisterPage> {
         'nickName': _nicknameController.text,
         'email': _usernameController.text,
         'password': _passwordController.text,
-        'role': 'ADMIN'
       });
 
-      var response = await http.post(url,
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: requestBody,
-      );
+      print('Request URL: $url');
+      print('Request Body: $requestBody');
 
-      var decodedResponse = utf8.decode(response.bodyBytes);
-      var jsonResponse = jsonDecode(decodedResponse);
-
-      if (response.statusCode == 201) {
-        CustomAlertDialog.showCustomDialog(
-          context: context,
-          title: '회원가입 완료',
-          content: '회원가입을 완료하였습니다. 로그인 페이지로 이동합니다.',
-          cancelButtonText: '',
-          confirmButtonText: '확인',
-          onConfirm: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => LoginPage()),
-            );
+      try {
+        var response = await http.post(url,
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
           },
+          body: requestBody,
         );
-      } else {
+
+        var decodedResponse = utf8.decode(response.bodyBytes);
+        var jsonResponse = jsonDecode(decodedResponse);
+
+        if (response.statusCode == 201) {
+          CustomAlertDialog.showCustomDialog(
+            context: context,
+            title: '회원가입 완료',
+            content: '회원가입을 완료하였습니다. 로그인 페이지로 이동합니다.',
+            cancelButtonText: '',
+            confirmButtonText: '확인',
+            onConfirm: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => LoginPage()),
+              );
+            },
+          );
+        } else {
+          CustomAlertDialog.showCustomDialog(
+            context: context,
+            title: '회원가입 실패 ',
+            content: '${jsonResponse['message'] ?? '오류가 발생하였습니다.'}',
+            cancelButtonText: '',
+            confirmButtonText: '재시도',
+            onConfirm: () {
+            },
+          );
+        }
+      } catch (e) {
+        print('Error: $e');
         CustomAlertDialog.showCustomDialog(
           context: context,
-          title: '회원가입 실패 ',
-          content: '${jsonResponse['message'] ?? '오류가 발생하였습니다.'}',
+          title: '회원가입 실패',
+          content: '네트워크 오류가 발생하였습니다. 다시 시도해 주세요.',
           cancelButtonText: '',
           confirmButtonText: '재시도',
           onConfirm: () {
