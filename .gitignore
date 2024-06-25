@@ -44,3 +44,4 @@ app.*.map.json
 
 *.env
 assets/config/.env
+assets/service_account.json
