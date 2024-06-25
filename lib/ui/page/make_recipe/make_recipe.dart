@@ -36,14 +36,14 @@ class RecipeCreationPage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center, // Align text to the center
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SizedBox(height: 40),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 24.0),
                     child: Text(
                       '나에게 맞는 레시피를 만들어 보세요',
-                      textAlign: TextAlign.center, // Center text alignment
+                      textAlign: TextAlign.center,
                       style: AppTextStyles.headingH1,
                     ),
                   ),
@@ -51,7 +51,7 @@ class RecipeCreationPage extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 24.0),
                     child: Text(
                       '원하는 식단, 재료로 기존 웹 페이지의 레시피를 사용자에 맞게 변환합니다.',
-                      textAlign: TextAlign.center, // Center text alignment
+                      textAlign: TextAlign.center,
                       style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkLight),
                     ),
                   ),

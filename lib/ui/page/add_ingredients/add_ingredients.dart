@@ -12,6 +12,7 @@ import 'package:cook_assistant/widgets/text_field.dart';
 import 'package:cook_assistant/widgets/popup.dart';
 import 'package:cook_assistant/widgets/dialog.dart';
 import 'package:cook_assistant/resource/config.dart'; // Ensure this import is correct
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddIngredientsPage extends StatefulWidget {
   @override
@@ -153,14 +154,16 @@ class _AddIngredientsPageState extends State<AddIngredientsPage> {
   }
 
   Future<void> createIngredient() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? accessToken = prefs.getString('accessToken');
+
     final String apiUrl = '${Config.baseUrl}/api/v1/ingredients/new';
     final Map<String, dynamic> requestBody = {
-      "userId": 16,
       "name": _nameController.text,
       "quantity": _quantityController.text,
       "expirationDate": _expirationDateController.text,
-      "imageURL": "assets/images/lettuce.jpg",
-      "type": "string"
+      "imageURL": "assets/images/red_onion.jpg",
+      "type": "Fruit"
     };
 
     print('요청 데이터: $requestBody');
@@ -170,7 +173,7 @@ class _AddIngredientsPageState extends State<AddIngredientsPage> {
         Uri.parse(apiUrl),
         headers: {
           'Content-Type': 'application/json',
-          //'Authorization': 'Bearer ${Config.apiKey}',
+          'Authorization': 'Bearer $accessToken',
         },
         body: jsonEncode(requestBody),
       );
@@ -181,7 +184,7 @@ class _AddIngredientsPageState extends State<AddIngredientsPage> {
       print('Response Status Code: ${response.statusCode}');
       print('Response Body: $decodedResponse');
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 200) {
         CustomAlertDialog.showCustomDialog(
           context: context,
           title: '등록 완료',
