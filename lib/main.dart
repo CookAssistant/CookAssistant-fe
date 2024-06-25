@@ -17,6 +17,7 @@ void main() async {
     print("환경 변수가 로드되었습니다");
     print("Loaded API Key: ${dotenv.env['OPENAI_API_KEY']}");
     print("Loaded API Key: ${dotenv.env['BASE_URL']}");
+    print("Loaded API Key: ${dotenv.env['BASE_URL2']}");
     runApp(MyApp());
   } catch (e) {
     print("Failed to load .env file: $e");
