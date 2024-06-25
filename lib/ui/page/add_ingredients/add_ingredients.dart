@@ -11,7 +11,7 @@ import 'package:cook_assistant/ui/theme/text_styles.dart';
 import 'package:cook_assistant/widgets/text_field.dart';
 import 'package:cook_assistant/widgets/popup.dart';
 import 'package:cook_assistant/widgets/dialog.dart';
-import 'package:cook_assistant/resource/config.dart'; // Ensure this import is correct
+import 'package:cook_assistant/resource/config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AddIngredientsPage extends StatefulWidget {

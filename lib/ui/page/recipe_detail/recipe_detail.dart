@@ -15,6 +15,7 @@ class RecipeDetailPage extends StatefulWidget {
   final Map<String, dynamic>? recipeDetails;
   final String? userDiet; // null 가능
   final String? recipeName; // null 가능
+  final String? imageType;
 
   RecipeDetailPage({
     Key? key,
@@ -23,6 +24,7 @@ class RecipeDetailPage extends StatefulWidget {
     this.recipeDetails,
     this.userDiet,
     this.recipeName,
+    this.imageType,
   }) : super(key: key);
 
   @override
@@ -36,7 +38,6 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
   bool isLiked = false;
   int userId = 0;
 
-  final String defaultImageUrl = 'assets/images/beef.jpg';
   final String defaultAuthorId = 'defaultNickName';
   final String defaultRecipeName = 'defaultRecipeName123';
   final String defaultDietType = 'defaultDietType';
@@ -285,7 +286,7 @@ t
     final Map<String, dynamic> requestData = {
       'name': widget.recipeName ?? defaultRecipeName,
       'content': recipeDetails.containsKey('content') ? recipeDetails['content'] : defaultContent,
-      'imageURL': recipeDetails.containsKey('imageURL') && recipeDetails['imageURL'] != null ? recipeDetails['imageURL'] : defaultImageUrl,
+      'imageURL': widget.imageType,
     };
 
     print('Request Data: $requestData');
@@ -404,7 +405,7 @@ t
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Image.asset(
-                  recipeDetails['imageURL'] ?? defaultImageUrl,
+                  widget.imageType ?? recipeDetails['imageURL'] ?? 'assets/images/mushroom.jpg',
                   width: double.infinity,
                   height: 300,
                   fit: BoxFit.cover,
@@ -462,7 +463,7 @@ t
                   recipeDetails['content'] ?? defaultContent,
                   style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkDarkest),
                 ),
-                const SizedBox(height: 32.0),
+                const SizedBox(height: 100.0),
               ],
             ),
           ),
