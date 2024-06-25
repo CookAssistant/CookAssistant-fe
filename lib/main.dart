@@ -9,7 +9,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:cook_assistant/ui/page/auth/register.dart';
 import 'package:cook_assistant/ui/page/auth/login.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
