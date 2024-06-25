@@ -50,6 +50,7 @@ class _AddIngredientsPageState extends State<AddIngredientsPage> {
     try {
       String base64Image = await encodeImageToBase64(imagePath);
       Uri uri = Uri.parse('https://vision.googleapis.com/v1/images:annotate?key=${dotenv.get('GOOGLE_CLOUD_VISION_API_KEY')}');
+      print('uri : $uri');
       var response = await http.post(
         uri,
         headers: {

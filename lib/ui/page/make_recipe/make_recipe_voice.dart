@@ -156,7 +156,7 @@ class _RecordScreenState extends State<MakeRecipeVoicePage> {
             Text(
               'Tell us your desired meal plan, including the ingredients and recipe name!',
               style: AppTextStyles.bodyM.copyWith(color: AppColors.neutralDarkLight),
-            ),
+            ),/*
             SizedBox(height: 16.0),
             Row(
               children: [
@@ -179,7 +179,7 @@ class _RecordScreenState extends State<MakeRecipeVoicePage> {
                   ),
                 ),
               ],
-            ),
+            ),*/
             Expanded(
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 32.0),
