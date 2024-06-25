@@ -4,6 +4,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:googleapis/vision/v1.dart' as vision;
+import 'package:googleapis_auth/auth_io.dart' as auth;
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:cook_assistant/widgets/button/primary_button.dart';
 import 'package:cook_assistant/widgets/button/secondary_button.dart';
 import 'package:cook_assistant/ui/theme/color.dart';
@@ -11,8 +14,9 @@ import 'package:cook_assistant/ui/theme/text_styles.dart';
 import 'package:cook_assistant/widgets/text_field.dart';
 import 'package:cook_assistant/widgets/popup.dart';
 import 'package:cook_assistant/widgets/dialog.dart';
-import 'package:cook_assistant/resource/config.dart'; // Ensure this import is correct
+import 'package:cook_assistant/resource/config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 
 class AddIngredientsPage extends StatefulWidget {
   @override
@@ -48,36 +52,34 @@ class _AddIngredientsPageState extends State<AddIngredientsPage> {
 
   Future<String?> annotateImage(String imagePath) async {
     try {
+      // 서비스 계정 인증 정보 로드
+      final serviceAccountJson = await rootBundle.loadString('assets/service_account.json');
+      final accountCredentials = auth.ServiceAccountCredentials.fromJson(serviceAccountJson);
+      final scopes = [vision.VisionApi.cloudPlatformScope];
+
+      // 인증 클라이언트 생성
+      final authClient = await auth.clientViaServiceAccount(accountCredentials, scopes);
+
+      // Google Vision API 클라이언트 생성
+      final visionApi = vision.VisionApi(authClient);
+
+      // 이미지 인코딩
       String base64Image = await encodeImageToBase64(imagePath);
-      Uri uri = Uri.parse('https://vision.googleapis.com/v1/images:annotate?key=${dotenv.get('GOOGLE_CLOUD_VISION_API_KEY')}');
-      var response = await http.post(
-        uri,
-        headers: {
-          HttpHeaders.contentTypeHeader: 'application/json',
-        },
-        body: jsonEncode({
-          'requests': [
-            {
-              'image': {'content': base64Image},
-              'features': [{'type': 'TEXT_DETECTION'}]
-            }
-          ]
-        }),
-      );
-      print('Vision API 요청 데이터: ${jsonEncode({
-        'requests': [
-          {
-            'image': {'content': base64Image},
-            'features': [{'type': 'TEXT_DETECTION'}]
-          }
-        ]
-      })}');
-      print('Vision API 응답 상태 코드: ${response.statusCode}');
-      print('Vision API 응답 본문: ${response.body}');
-      if (response.statusCode != 200) throw "Vision API 호출 실패: ${response.statusCode}";
-      var jsonResponse = json.decode(response.body);
-      if (jsonResponse['responses'][0]['textAnnotations'].isEmpty) throw "어노테이션을 찾을 수 없습니다.";
-      return jsonResponse['responses'][0]['textAnnotations'][0]['description'];
+
+      // Vision API 요청 생성
+      final visionRequest = vision.BatchAnnotateImagesRequest(requests: [
+        vision.AnnotateImageRequest(
+            image: vision.Image(content: base64Image),
+            features: [vision.Feature(type: 'TEXT_DETECTION')]
+        )
+      ]);
+
+      // Vision API 호출
+      final visionResponse = await visionApi.images.annotate(visionRequest);
+      final annotation = visionResponse.responses?.first.textAnnotations?.first.description;
+
+      if (annotation == null) throw "어노테이션을 찾을 수 없습니다.";
+      return annotation;
     } catch (e) {
       print("annotateImage 오류: $e");
       return null;

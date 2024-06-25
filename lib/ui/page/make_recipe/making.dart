@@ -99,7 +99,6 @@ class _MakingPageState extends State<MakingPage> {
       'config': {},
       'kwargs': {}
     });
-
     print('Request URL: $url');
     print('Request Headers: $headers');
     print('Request Body: $body');

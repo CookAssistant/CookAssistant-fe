@@ -117,7 +117,6 @@ class _MyPageState extends State<MyPage> {
                     height: 80,
                   ),
                 ),
-                SizedBox(height: 10),
                 Text(
                   isLoggedIn ? '환영합니다!' : '로그인이 필요합니다',
                   style: AppTextStyles.headingH3.copyWith(color: AppColors.neutralDarkDarkest),
