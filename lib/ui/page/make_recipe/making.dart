@@ -36,6 +36,7 @@ class _MakingPageState extends State<MakingPage> {
   List<String> fridgeIngredients = [];
   List<String> loadedIngredients = [];
   List<String> selectedIngredients = [];
+  String imageType = "mushroom";
 
   Map<String, dynamic> generatedRecipeDetails = {};
 
@@ -59,40 +60,53 @@ class _MakingPageState extends State<MakingPage> {
   }
 
   Future<void> extractKeywords(String text) async {
-    final response = await http.post(
-      Uri.parse('https://api.openai.com/v1/chat/completions'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${Config.apiKey}',
-      },
-      body: jsonEncode({
-        'model': 'gpt-3.5-turbo',
-        'messages': [
-          {'role': 'system', 'content': 'You are a program that extracts user diet preferences, recipe names, and ingredient keywords from entered text. Parse the given string. Please answer in korean'},
-          {'role': 'user', 'content': '다음 텍스트에서 userDiet, recipeName, ingredients를 추출해서 json 형식으로 알려줘. 만약 사용할 재료가 언급되어 있지 않는 경우 다른 재료를 찾지 말고 "모든 재료" 라고 출력해줘. 다른 말은 하지 마. ${text}'},
-        ],
-      }),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse('https://api.openai.com/v1/chat/completions'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${Config.apiKey}',
+        },
+        body: jsonEncode({
+          'model': 'gpt-3.5-turbo',
+          'messages': [
+            {'role': 'system', 'content': 'You are a program that extracts user diet preferences, recipe names, and ingredient keywords from entered text. Parse the given string. Please answer in korean'},
+            {'role': 'user', 'content': '''
+            다음 텍스트에서 userDiet, recipeName, ingredients, imageType을 추출해서 json 형식으로 알려줘.
+            만약 사용할 재료가 언급되어 있지 않는 경우 다른 재료를 찾지 말고 "모든 재료" 라고 출력해줘.
+            imageType은 [beef, lettuce, mushroom, nut, pasta, red_onion, roasted_chicken, salad, soup]중에서 골라줘. 철자가 다르거나 표기법이 다르면 안돼. 똑같은 종류가 없으면 가장 가까운 것으로 골라줘. 전혀 없으면 mushroom으로 해줘.
+            다른 말은 하지 마.
+            ${text}
+            '''},
+          ],
+        }),
+      );
 
-    if (response.statusCode == 200) {
-      final result = jsonDecode(utf8.decode(response.bodyBytes));
-      if (result['choices'] != null && result['choices'].isNotEmpty) {
-        final messageContent = result['choices'][0]['message']['content'];
-        Map<String, dynamic> contentJson = jsonDecode(messageContent);
+      if (response.statusCode == 200) {
+        final result = jsonDecode(utf8.decode(response.bodyBytes));
+        if (result['choices'] != null && result['choices'].isNotEmpty) {
+          final messageContent = result['choices'][0]['message']['content'];
+          Map<String, dynamic> contentJson = jsonDecode(messageContent);
+          setState(() {
+            _response = messageContent;
+            _responseJsonString = jsonEncode(contentJson);
+            _dietController.text = contentJson['userDiet'] ?? "정보 없음";
+            _recipeController.text = contentJson['recipeName'] ?? "정보 없음";
+            loadedIngredients = (contentJson['ingredients'] is List)
+                ? List<String>.from(contentJson['ingredients'])
+                : [contentJson['ingredients'] ?? "정보 없음"];
+            imageType = contentJson['imageType'] ?? "mushroom";
+            updateSelectedIngredients();
+          });
+        }
+      } else {
         setState(() {
-          _response = messageContent;
-          _responseJsonString = jsonEncode(contentJson);
-          _dietController.text = contentJson['userDiet'] ?? "정보 없음";
-          _recipeController.text = contentJson['recipeName'] ?? "정보 없음";
-          loadedIngredients = (contentJson['ingredients'] is List)
-              ? List<String>.from(contentJson['ingredients'])
-              : [contentJson['ingredients'] ?? "정보 없음"];
-          updateSelectedIngredients();
+          _response = '오류가 발생했습니다. 상태 코드: ${response.statusCode}';
         });
       }
-    } else {
+    } catch (e) {
       setState(() {
-        _response = '오류가 발생했습니다. 상태 코드: ${response.statusCode}';
+        _response = '오류가 발생했습니다: $e';
       });
     }
   }
@@ -109,16 +123,16 @@ class _MakingPageState extends State<MakingPage> {
     };
     final body = jsonEncode({
       'input': '''
-당신은 미슐랭 스타를 받은 요리사이자 영양학 석사 학위를 가진 영양사입니다. 사용자가 원하는 요리명을 포함하여 가지고 있는 재료와 식단 유형에 맞는 맛있는 요리를 추천해 주세요. 
-**식단 유형:** [${_dietController.text}] 
-**가지고 있는 재료:** [${_ingredientDateController.text}] 
-**원하는 요리명:** [${_recipeController.text}] 
+당신은 미슐랭 스타를 받은 요리사이자 영양학 석사 학위를 가진 영양사입니다. 사용자가 원하는 요리명을 포함하여 가지고 있는 재료와 식단 유형에 맞는 맛있는 요리를 추천해 주세요.
+식단 유형: [${_dietController.text}]
+가지고 있는 재료: [${_ingredientDateController.text}]
+원하는 요리명: [${_recipeController.text}]
 레시피는 다음을 포함해야 합니다: 
-1. 필요한 재료 목록과 각 재료의 정확한 양. 
+1. 요리를 완성하는데 걸리는 시간을 제시한 후 필요한 재료 목록과 각 재료의 정확한 양. 
 2. 단계별 요리 방법, 각 단계에 대한 자세한 설명. 
 3. 요리를 더 맛있게 만드는 팁이나 변형 방법. 
-4. 이 요리의 영양 정보와 건강에 미치는 이점. 
-5. 제안된 레시피의 각 단계를 검토하고, 최종적으로 만족스러운지 확인한 후 필요에 따라 수정하세요. 
+4. 이 요리의 영양 정보(구체적인 1인분 칼로리)와 건강에 미치는 이점을 작성하세요. 
+5.  제안된 레시피의 각 단계를 검토하고, 최종적으로 만족스러운지 확인한 후 필요에 따라 수정하세요. 
 6. 레시피 작성 후, 결과물의 맛과 영양 정보를 다시 평가하고, 필요한 경우 보완점을 제시해 주세요.
       ''',
       'config': {},
@@ -227,7 +241,7 @@ class _MakingPageState extends State<MakingPage> {
               label: '사용할 재료',
               hint: ' ',
             ),
-            SizedBox(height: 64.0),
+            SizedBox(height: 300.0),
             Text(
               'String Response:',
               style: AppTextStyles.bodyL.copyWith(color: AppColors.neutralDarkDarkest),
@@ -270,8 +284,9 @@ class _MakingPageState extends State<MakingPage> {
                   registered: false,
                   recipeId: 0,
                   recipeDetails: generatedRecipeDetails,
-                  userDiet: _dietController.text, // 변경된 사용자 식단 전달
-                  recipeName: _recipeController.text, // 변경된 레시피 이름 전달
+                  userDiet: _dietController.text,
+                  recipeName: _recipeController.text,
+                  imageType: 'assets/images/$imageType.jpg',
                 ),
               ),
             );
