@@ -6,7 +6,7 @@ import 'package:cook_assistant/widgets/text_field.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cook_assistant/resource/config.dart';
-import 'package:cook_assistant/ui/page/recipe_detail/recipe_detail.dart'; // Ensure this import path is correct
+import 'package:cook_assistant/ui/page/recipe_detail/recipe_detail.dart';
 
 class MakingPage extends StatefulWidget {
   final String recordedText;
@@ -74,10 +74,12 @@ class _MakingPageState extends State<MakingPage> {
           _responseJsonString = jsonEncode(contentJson);
           _dietController.text = contentJson['userDiet'] ?? "정보 없음";
           _recipeController.text = contentJson['recipeName'] ?? "정보 없음";
-          _ingredientDateController.text = contentJson['ingredients'] ?? "정보 없음";
+          _ingredientDateController.text = (contentJson['ingredients'] is List)
+              ? (contentJson['ingredients'] as List).join(', ')
+              : contentJson['ingredients'] ?? "정보 없음";
         });
 
-        await createRecipe(contentJson);
+        await streamCreateRecipe(contentJson);
       }
     } else {
       setState(() {
@@ -86,31 +88,35 @@ class _MakingPageState extends State<MakingPage> {
     }
   }
 
-  Future<void> createRecipe(Map<String, dynamic> recipeData) async {
-    final newRecipeResponse = await http.post(
-      Uri.parse('${Config.baseUrl}/api/v1/recipes/new'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${Config.apiKey}',
-      },
-      body: jsonEncode({
-        'userId': 16,
-        'email': 'aaa@aaa.com',
-        'password': 'aaa',
-        'role': 'ADMIN',
-        //'recipeName': recipeData['recipeName'],
-        //'userDiet': recipeData['userDiet'],
-        //'ingredients': recipeData['ingredients'],
-      }),
-    );
+  Future<void> streamCreateRecipe(Map<String, dynamic> recipeData) async {
+    final url = Uri.parse('${Config.baseUrl2}/create-recipe/stream/invoke');
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ${Config.apiKey}',
+    };
+    final body = jsonEncode({
+      'input': "템페를 이용해서 돼지고기 된장찌개 레시피를 만들어줘. 락토오보베지테리언 식단이야.",//_recipeController.text,
+      'config': {},
+      'kwargs': {}
+    });
 
-    if (newRecipeResponse.statusCode == 201) {
+    print('Request URL: $url');
+    print('Request Headers: $headers');
+    print('Request Body: $body');
+
+    final response = await http.post(url, headers: headers, body: body);
+
+    final responseBody = utf8.decode(response.bodyBytes);
+    print('Response Status Code: ${response.statusCode}');
+    print('Response Body: $responseBody');
+
+    if (response.statusCode == 200) {
       setState(() {
-        _recipeCreateResponse = '레시피가 성공적으로 생성되었습니다: ${newRecipeResponse.body}';
+        _recipeCreateResponse = '레시피가 성공적으로 생성되었습니다: $responseBody';
       });
     } else {
       setState(() {
-        _recipeCreateResponse = '레시피 생성에 실패했습니다: 상태 코드 ${newRecipeResponse.statusCode} - 응답 본문: ${newRecipeResponse.body}';
+        _recipeCreateResponse = '레시피 생성에 실패했습니다: 상태 코드 ${response.statusCode} - 응답 본문: $responseBody';
       });
     }
   }
@@ -201,7 +207,7 @@ class _MakingPageState extends State<MakingPage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => RecipeDetailPage(registered: false, userId:16, recipeId:1),
+                builder: (context) => RecipeDetailPage(registered: false, recipeId: 9),
               ),
             );
           },

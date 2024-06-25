@@ -7,6 +7,7 @@ import 'package:cook_assistant/widgets/button/primary_button.dart';
 import 'package:cook_assistant/ui/page/add_ingredients/add_ingredients.dart';
 import 'package:cook_assistant/resource/config.dart';
 import 'package:cook_assistant/widgets/dialog.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FridgeCard extends StatelessWidget {
   final String title;
@@ -26,6 +27,7 @@ class FridgeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isNetworkImage = Uri.tryParse(imageUrl)?.hasAbsolutePath ?? false;
     return Container(
       width: 327,
       height: 110,
@@ -37,7 +39,15 @@ class FridgeCard extends StatelessWidget {
           padding: const EdgeInsets.all(12.0),
           child: Row(
             children: [
-              Image.asset(
+              isNetworkImage
+                  ? Image.network(
+                imageUrl,
+                width: 56.0,
+                height: 56.0,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Icon(Icons.error),
+              )
+                  : Image.asset(
                 imageUrl,
                 width: 56.0,
                 height: 56.0,
@@ -87,7 +97,6 @@ class MyFridgePage extends StatefulWidget {
 class _MyFridgePageState extends State<MyFridgePage> {
   List<Map<String, dynamic>> fridgeItems = [];
   bool isLoading = true;
-  final int userId = 16;
 
   @override
   void initState() {
@@ -96,16 +105,29 @@ class _MyFridgePageState extends State<MyFridgePage> {
   }
 
   Future<void> fetchIngredients() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? accessToken = prefs.getString('accessToken');
+
+    if (accessToken == null) {
+      print('Access token is null');
+      return;
+    }
+
     final response = await http.get(
-      Uri.parse('${Config.baseUrl}/api/v1/ingredients/all/$userId'),
+      Uri.parse('${Config.baseUrl}/api/v1/ingredients/all'),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${Config.apiKey}',
+        'Authorization': 'Bearer $accessToken',
       },
     );
 
+    // 응답 로그 출력
+    print('Fetch Ingredients Response Status Code: ${response.statusCode}');
+    print('Fetch Ingredients Response Body: ${utf8.decode(response.bodyBytes)}');
+
     if (response.statusCode == 200) {
-      List<dynamic> ingredients = json.decode(response.body);
+      var jsonResponse = json.decode(utf8.decode(response.bodyBytes));
+      List<dynamic> ingredients = jsonResponse['data'];
       setState(() {
         fridgeItems = ingredients.map((ingredient) {
           return {
@@ -119,7 +141,6 @@ class _MyFridgePageState extends State<MyFridgePage> {
         isLoading = false;
       });
     } else {
-      // Handle error appropriately in your application
       print('Failed to load ingredients: ${response.statusCode}');
       setState(() {
         isLoading = false;
@@ -128,19 +149,24 @@ class _MyFridgePageState extends State<MyFridgePage> {
   }
 
   Future<void> deleteIngredient(int ingredientId) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? accessToken = prefs.getString('accessToken');
+
     final response = await http.delete(
       Uri.parse('${Config.baseUrl}/api/v1/ingredients/delete'),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${Config.apiKey}',
+        'Authorization': 'Bearer $accessToken',
       },
       body: jsonEncode({
-        'userId': userId,
         'ingredientId': ingredientId,
       }),
     );
 
-    if (response.statusCode == 204) {
+    print('Delete Ingredient Response Status Code: ${response.statusCode}');
+    print('Delete Ingredient Response Body: ${response.body}');
+
+    if (response.statusCode == 200) {
       setState(() {
         fridgeItems.removeWhere((item) => item['id'] == ingredientId);
         CustomAlertDialog.showCustomDialog(
@@ -149,8 +175,7 @@ class _MyFridgePageState extends State<MyFridgePage> {
           content: '식재료가 성공적으로 삭제되었습니다.',
           cancelButtonText: '',
           confirmButtonText: '확인',
-          onConfirm: () {
-          },
+          onConfirm: () {},
         );
       });
     } else {
@@ -160,8 +185,7 @@ class _MyFridgePageState extends State<MyFridgePage> {
         content: '식재료 삭제를 실패하였습니다.',
         cancelButtonText: '',
         confirmButtonText: '확인',
-        onConfirm: () {
-        },
+        onConfirm: () {},
       );
     }
   }
