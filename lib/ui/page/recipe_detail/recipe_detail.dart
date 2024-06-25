@@ -12,8 +12,18 @@ import 'package:cook_assistant/resource/config.dart';
 class RecipeDetailPage extends StatefulWidget {
   final bool registered;
   final int recipeId;
+  final Map<String, dynamic>? recipeDetails;
+  final String? userDiet; // null 가능
+  final String? recipeName; // null 가능
 
-  RecipeDetailPage({Key? key, required this.registered, required this.recipeId}) : super(key: key);
+  RecipeDetailPage({
+    Key? key,
+    required this.registered,
+    required this.recipeId,
+    this.recipeDetails,
+    this.userDiet,
+    this.recipeName,
+  }) : super(key: key);
 
   @override
   _RecipeDetailPageState createState() => _RecipeDetailPageState();
@@ -26,15 +36,17 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
   bool isLiked = false;
   int userId = 0;
 
-  final String defaultImageUrl = 'assets/images/mushroom.jpg';
+  final String defaultImageUrl = 'assets/images/beef.jpg';
   final String defaultAuthorId = 'defaultNickName';
-  final String defaultRecipeName = '돼지고기 된장찌개';
+  final String defaultRecipeName = 'defaultRecipeName123';
   final String defaultDietType = 'defaultDietType';
-  final String defaultDate = '2024.03.10';
-  final List<String> defaultMainIngredients = ['default1', 'default2', 'default3'];
-  final List<String> defaultAllIngredients = ['default1', 'default2', 'default3', 'default4', 'default5', 'default6'];
+
   final String defaultContent = '''
 tmptmptmp
+t
+t
+t
+t
 1. 냄비에 들기름을 두르고 다진 대파와 마늘을 볶아 향을 낸 후 양파를 넣어 볶습니다.
 2. 양파가 투명해질 때까지 볶은 후 고춧가루를 넣고 빨간 기름이 돌도록 볶아줍니다.
 3. 된장을 넣고 잘 섞어줍니다.
@@ -48,7 +60,16 @@ tmptmptmp
   @override
   void initState() {
     super.initState();
-    fetchUserDetails();
+    if (widget.recipeId == 0 && widget.recipeDetails != null) {
+      setState(() {
+        recipeDetails = widget.recipeDetails!;
+        isLoading = false;
+      });
+    } else if (widget.recipeId != 0) {
+      fetchUserDetails();
+    }
+    print("User Diet: ${widget.userDiet}");
+    print("Recipe Name: ${widget.recipeName}");
   }
 
   Future<void> fetchUserDetails() async {
@@ -125,6 +146,7 @@ tmptmptmp
 
     print('Fetched Recipe Details: $recipeDetails');
     print('Recipe ID: ${widget.recipeId}');
+    print('Content: ${recipeDetails['content']}');
   }
 
   String formatDate(List<dynamic> dateList) {
@@ -133,7 +155,7 @@ tmptmptmp
       final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm');
       return formatter.format(dateTime);
     } catch (e) {
-      return defaultDate;
+      return DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
     }
   }
 
@@ -258,22 +280,12 @@ tmptmptmp
   Future<void> registerRecipe() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? accessToken = prefs.getString('accessToken');
-    print('accessToken: ');
-    print(accessToken);
-    String ingredients = (isError || recipeDetails['allIngredients'] == null
-        ? defaultAllIngredients
-        : recipeDetails['allIngredients']).join(', ');
-
-    String steps = (isError || recipeDetails['content'] == null
-        ? defaultContent
-        : recipeDetails['content']);
-
-    final String content = 'Ingredients:\n$ingredients\n\nSteps:\n$steps';
+    print('accessToken: $accessToken');
 
     final Map<String, dynamic> requestData = {
-      'name': isError || recipeDetails['name'] == null ? 'TmpRecipeName' : recipeDetails['name'],
-      'content': content,
-      'imageURL': isError || recipeDetails['imageURL'] == null ? defaultImageUrl : recipeDetails['imageURL'],
+      'name': widget.recipeName ?? defaultRecipeName,
+      'content': recipeDetails.containsKey('content') ? recipeDetails['content'] : defaultContent,
+      'imageURL': recipeDetails.containsKey('imageURL') && recipeDetails['imageURL'] != null ? recipeDetails['imageURL'] : defaultImageUrl,
     };
 
     print('Request Data: $requestData');
@@ -402,7 +414,7 @@ tmptmptmp
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      recipeDetails['name'] ?? defaultRecipeName,
+                      widget.recipeName ?? recipeDetails['name'] ?? defaultRecipeName, // 레시피 이름 출력
                       style: AppTextStyles.headingH2.copyWith(color: AppColors.neutralDarkDarkest),
                     ),
                     IconButton(
@@ -422,7 +434,7 @@ tmptmptmp
                 ),
                 const SizedBox(height: 8.0),
                 Text(
-                  recipeDetails['dietType'] ?? defaultDietType,
+                  widget.userDiet ?? recipeDetails['dietType'] ?? defaultDietType, // 사용자 식단 출력
                   style: AppTextStyles.bodyL.copyWith(color: AppColors.neutralDarkDarkest),
                 ),
                 const SizedBox(height: 16.0),
@@ -436,32 +448,10 @@ tmptmptmp
                     Text(
                       recipeDetails['createdAt'] != null
                           ? formatDate(recipeDetails['createdAt'])
-                          : defaultDate,
+                          : DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now()), // 현재 날짜 출력
                       style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkLight),
                     ),
                   ],
-                ),
-                const SizedBox(height: 32.0),
-                Text(
-                  '주요 재료',
-                  style: AppTextStyles.headingH5.copyWith(color: AppColors.neutralDarkDarkest),
-                ),
-                Text(
-                  recipeDetails['mainIngredients'] != null
-                      ? (recipeDetails['mainIngredients'] as List<dynamic>).join(', ')
-                      : defaultMainIngredients.join(', '),
-                  style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkDarkest),
-                ),
-                const SizedBox(height: 16.0),
-                Text(
-                  '전체 재료',
-                  style: AppTextStyles.headingH5.copyWith(color: AppColors.neutralDarkDarkest),
-                ),
-                Text(
-                  recipeDetails['allIngredients'] != null
-                      ? (recipeDetails['allIngredients'] as List<dynamic>).join(', ')
-                      : defaultAllIngredients.join(', '),
-                  style: AppTextStyles.bodyS.copyWith(color: AppColors.neutralDarkDarkest),
                 ),
                 const SizedBox(height: 32.0),
                 Text(
